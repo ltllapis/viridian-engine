@@ -1,0 +1,3 @@
+{ "name": "viridian-engine", "private": true, "type": "module",
+  "dependencies": { "playwright": "1.49.1" },
+  "scripts": { "render": "node template/render.mjs", "preview": "node template/preview.mjs", "qa": "python3 -I template/qa.py" } }

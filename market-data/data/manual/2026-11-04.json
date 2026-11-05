@@ -1,0 +1,151 @@
+{
+ "date": "2026-11-04",
+ "verdict": "REVIEW",
+ "items": [
+  {
+   "name": "DOW",
+   "date": "2026-11-04",
+   "close": 53356.12,
+   "prev_close": 51786.72,
+   "change_pct": 3.03,
+   "second_source_close": 53357.19,
+   "status": "PASS",
+   "notes": [
+    "CNBC close 53,356.12 (+1,569.40, +3.03%); Bloomingbit 53,357.19; manual entry from the Nov 4 session"
+   ],
+   "label": "Dow Jones"
+  },
+  {
+   "name": "SPX",
+   "date": "2026-11-04",
+   "close": 7688.62,
+   "prev_close": 7568.92,
+   "change_pct": 1.58,
+   "second_source_close": 7688.62,
+   "status": "PASS",
+   "notes": [
+    "Robinhood SPX and CNBC both +1.58% to 7,688.62; manual entry"
+   ],
+   "label": "S&P 500"
+  },
+  {
+   "name": "NASDAQ",
+   "date": "2026-11-04",
+   "close": 25736.51,
+   "prev_close": 25372.01,
+   "change_pct": 1.44,
+   "status": "PASS",
+   "notes": [
+    "CNBC +1.44% to 25,736.51; Bloomingbit headline +1.44% (percent only, no close); manual entry"
+   ],
+   "label": "Nasdaq Composite"
+  },
+  {
+   "name": "VIX",
+   "date": "2026-11-04",
+   "close": 16.61,
+   "prev_close": 20.83,
+   "change_pct": -20.26,
+   "status": "SINGLE-SOURCE",
+   "notes": [
+    "Robinhood 4:15 pm level vs Nov 3; single source (one tool, both days); shown as about 20% down"
+   ],
+   "label": "VIX"
+  },
+  {
+   "name": "MSFT",
+   "date": "2026-11-04",
+   "close": 555.99,
+   "prev_close": 520.99,
+   "change_pct": 6.72,
+   "status": "SINGLE-SOURCE",
+   "notes": [
+    "Robinhood closing print only (read-only); official close can differ by a few cents"
+   ],
+   "label": "MSFT"
+  },
+  {
+   "name": "AMZN",
+   "date": "2026-11-04",
+   "close": 266.14,
+   "prev_close": 250.69,
+   "change_pct": 6.16,
+   "status": "SINGLE-SOURCE",
+   "notes": [
+    "Robinhood closing print only (read-only); official close can differ by a few cents"
+   ],
+   "label": "AMZN"
+  },
+  {
+   "name": "AAPL",
+   "date": "2026-11-04",
+   "close": 349.6,
+   "prev_close": 331.9,
+   "change_pct": 5.33,
+   "status": "SINGLE-SOURCE",
+   "notes": [
+    "Robinhood closing print only (read-only); official close can differ by a few cents",
+    "news summary consistent (about +6% intraday)"
+   ],
+   "label": "AAPL"
+  },
+  {
+   "name": "GOOGL",
+   "date": "2026-11-04",
+   "close": 289.03,
+   "prev_close": 280.03,
+   "change_pct": 3.21,
+   "status": "SINGLE-SOURCE",
+   "notes": [
+    "Robinhood closing print only (read-only); official close can differ by a few cents"
+   ],
+   "label": "GOOGL"
+  },
+  {
+   "name": "META",
+   "date": "2026-11-04",
+   "close": 629.67,
+   "prev_close": 621.03,
+   "change_pct": 1.39,
+   "status": "SINGLE-SOURCE",
+   "notes": [
+    "Robinhood closing print only (read-only); official close can differ by a few cents"
+   ],
+   "label": "META"
+  },
+  {
+   "name": "NVDA",
+   "date": "2026-11-04",
+   "close": 200.29,
+   "prev_close": 206.69,
+   "change_pct": -3.1,
+   "status": "SINGLE-SOURCE",
+   "notes": [
+    "Robinhood closing print only (read-only); official close can differ by a few cents"
+   ],
+   "label": "NVDA"
+  },
+  {
+   "name": "TSLA",
+   "date": "2026-11-04",
+   "close": 385.31,
+   "prev_close": 398.5,
+   "change_pct": -3.31,
+   "status": "SINGLE-SOURCE",
+   "notes": [
+    "Robinhood closing print only (read-only); official close can differ by a few cents"
+   ],
+   "label": "TSLA"
+  },
+  {
+   "name": "OIL",
+   "label": "Oil",
+   "change_pct": -7.0,
+   "status": "SINGLE-SOURCE",
+   "notes": [
+    "Benzinga headline 'Oil Sinks 7%' only; show with ~"
+   ]
+  }
+ ],
+ "note": "Entertainment only. Not financial advice. Built by hand in the Nov 4 recap session (fetch.py has not run live). Causes of moves are sourced separately: Democrats won control of Congress per CNBC, Yahoo, Schwab and Boston Globe headlines."
+}
