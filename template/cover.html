@@ -14,8 +14,10 @@ svg{position:absolute;left:0;top:0}
 .pill span{font-weight:800;font-size:12.5px;padding:8px 11px;white-space:nowrap;border-radius:20px;letter-spacing:.5px}
 .dn{background:#F9D5CD;color:#C45A4B}.up{background:#CDEEDF;color:#3F9A74}
 .ft{bottom:34px;top:auto;font-family:Inter;font-weight:600;font-size:10px;color:#8691A8}
+#w{position:absolute;left:0;top:0;width:540px;height:960px;transform:scale(.86);transform-origin:50% 50%}
+/* Instagram grid crops to 3:4: keep text and art between y 125 and 835 */
 </style></head>
-<body>
+<body><div id="w">
 <svg width="540" height="960" viewBox="0 0 540 960" id="s"></svg>
 <div class="t k">MARKET CLOSE · NOV 3, 2026</div>
 <div class="t h1">ELECTION DAY</div>
@@ -23,7 +25,7 @@ svg{position:absolute;left:0;top:0}
 <div class="pill"><span class="dn">▼ DOW −0.38%</span><span class="up">▲ S&amp;P +0.36%</span><span class="up">▲ NASDAQ +0.83%</span></div>
 <div class="t sub">Chips rally · Apple slips · AMD jumps after hours</div>
 <div class="t ft">Entertainment only. Not financial advice.</div>
-<script>
+</div><script>
 const NS='http://www.w3.org/2000/svg';const s=document.getElementById('s');
 const P={cream2:'#EADFCD',cream3:'#DFD1BB',ink:'#3E4A63',ink2:'#5B6782',mint:'#8FD3B6',mint2:'#5FB894',coral:'#F19C8E',coral2:'#E07A6B',butter:'#F6D186',butter2:'#E9B65A',sky:'#A7C7EA',sky2:'#7FA8D8',sky3:'#D5E5F6',lav:'#C3B3E6',lav3:'#E6DEF5',white:'#FFFDF8'};
 const rr=(x,y,w,h,r,f,e='')=>`<rect x="${x}" y="${y}" width="${w}" height="${h}" rx="${r}" fill="${f}" ${e}/>`;
