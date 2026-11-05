@@ -313,6 +313,25 @@ B.driver=(v,sc)=>{const tU=wordTime(sc,'Uncertainty'),tF=wordTime(sc,'faded'),tV
     const amp=15*(1-eio(prog(t,tF-.4,1.0)));let d='M-38 0';for(let x=-38;x<=38;x+=4)d+=` L${x} ${(amp*Math.sin(x*.17+t*6)).toFixed(2)}`;byId(o,'wv').g.querySelector('.wv').setAttribute('d',d);
     const a=lerp(58,-58,eio(prog(t,tV,1.2)))+Math.sin(t*14)*3*(1-prog(t,tV,.1));byId(o,'gg').g.querySelector('.needle').setAttribute('transform',`rotate(${a})`);});};
 
+B.selloff=(v,sc)=>{const ts=wordTime(sc,'plunged')-.05;const L=[88,64,76,40],R=[112,72,92,58];
+  const items=[disc(215,P.cream2,0),
+   I(`<g>${A.nyse()}</g>`,CX,CY+84,.05,{s:.8}),
+   I(`<g>${A.chip(.5)}</g>`,CX,CY-120,.1,{id:'cp',from:'none',fn:(t,t0)=>{const k=eio(prog(t,ts,.9));const sh=t<ts?Math.sin(t*60)*2*prog(t,ts-.4,.4):0;return {x:CX+sh,y:CY-150+k*130,r:k*-10,s:.9*clamp(eob(prog(t,t0+.05,.35)))}}}),
+   ...L.map((h,i)=>I(A.candle(h,false),CX-176+i*20,CY-60+h/2,{w:'plunged',o:.15+i*.1},{from:'up'})),
+   ...R.map((h,i)=>I(A.candle(h,false),CX+116+i*20,CY-90+h/2,{w:'plunged',o:.25+i*.1},{from:'up'})),
+   I(A.arrow(P.coral2,false,1.1),CX-168,CY+110,{w:'plunged',o:.2},{bob:6}),I(A.arrow(P.coral2,false,1.1),CX+168,CY+110,{w:'plunged',o:.3},{bob:6})];
+  return makeScene(sc,items);};
+
+B.aidriver=(v,sc)=>{const tV=wordTime(sc,'VIX');
+  const items=[disc(215,P.cream2,0),
+   I(`<g>${A.capitol()}</g>`,CX,CY-72,.1,{s:.72}),
+   I(`<g>${A.ballot()}</g>`,CX-165,CY-128,{w:'Democratic',o:-.2},{s:.7,r:-10,bob:5}),
+   I(`<g>${A.rack()}</g>`,CX-150,CY+62,{w:'AI',o:-.2},{s:.8}),
+   I(A.arrow(P.coral2,false,.7),CX-150,CY+176,{w:'AI',o:.3},{bob:4}),
+   I(`<g>${A.cloud()}</g>`,CX+160,CY-124,{w:'data',o:-.2},{s:.4,bob:4}),
+   I(`<g>${A.gauge()}</g>`,CX+100,CY+138,{w:'VIX',o:-.7},{s:.82,id:'gg'})];
+  return makeScene(sc,items,(t,l,o)=>{const a=lerp(-58,58,eio(prog(t,tV,1.2)))+Math.sin(t*14)*3*(1-prog(t,tV,.1));byId(o,'gg').g.querySelector('.needle').setAttribute('transform',`rotate(${a})`);});};
+
 B.msftamzn=(v,sc)=>{const t1=wordTime(sc,v.cards[0].at),t2=wordTime(sc,v.cards[1].at);const base=CY+112,ta=t2-.05;
   const items=[I(`<circle r="150" fill="${P.cream2}"/>`,CX,CY-110,{w:v.cards[0].at,o:-.4},{dur:.7}),I(`<circle r="150" fill="${P.cream2}"/>`,CX,CY+150,{w:v.cards[1].at,o:-.4},{dur:.7}),
    I(`<g>${A.cloud()}</g>`,CX,CY-90,{w:v.cards[0].at,o:-.3},{s:.78,id:'cl',fn:(t)=>{const k=eio(prog(t,t1-.05,.9));return {y:CY-86-k*40+Math.sin(t*2)*2}}}),
@@ -369,7 +388,7 @@ function mkChart(cfg){
     if(cfg.zpulse!=null){const k=prog(t,cfg.zpulse,1.6),z=G.querySelector('.zl');const on=k>0&&k<1;z.setAttribute('stroke',on?P.butter2:P.ink3);z.setAttribute('stroke-width',on?4+2*Math.sin(k*Math.PI*4):2.5);const zt=G.querySelector('.zt');if(zt)zt.setAttribute('fill',k>0?P.butter2:P.ink3);}};
   return {svg:g,upd};}
 const ICON={MSFT:()=>`<g transform="scale(.36)">${A.cloud()}</g>`,AMZN:()=>`<g transform="scale(.42)">${A.box()}</g>`,GOOGL:()=>`<g transform="scale(.42)">${A.magnifier()}</g>`,
-  META:()=>`<g transform="scale(.55)">${A.chat(P.sky)}</g>`,NVDA:()=>A.chip(.36),TSLA:()=>`<g transform="scale(.36)">${A.car()}</g>`,AAPL:()=>`<g transform="scale(.42)">${A.apple()}</g>`};
+  META:()=>`<g transform="scale(.55)">${A.chat(P.sky)}</g>`,NVDA:()=>A.chip(.36),TSLA:()=>`<g transform="scale(.36)">${A.car()}</g>`,AAPL:()=>`<g transform="scale(.42)">${A.apple()}</g>`,AMD:()=>`<g transform="scale(.36)">${A.gpu()}</g>`};
 const TL=[[0,'9:30'],[.5,'NOON'],[1,'4:00']];
 B.ichart=(v,sc)=>{const ser=v.series.map(s=>({...s,t0:wordTime(sc,s.at)-.1,dur:s.dur||1.6}));
   const ch=mkChart({w:450,h:380,grid:true,zlabel:"YESTERDAY'S CLOSE",zbelow:true,timeLabels:TL,series:ser,pt:66,pr:96,pl:52,lw:5.5,title:'TODAY, MINUTE BY MINUTE'});
