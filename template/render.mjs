@@ -18,7 +18,7 @@ const browser = await chromium.launch();
 const page = await browser.newPage({ viewport: { width: 540, height: 960 }, deviceScaleFactor: 2 });
 page.on("pageerror", e => console.error("PAGE ERROR", e.message));
 await page.goto("file://" + path.join(here, arg("--scene") || "scene.html"));
-await page.evaluate(async ([s, t, c]) => { await document.fonts.ready; window.init(s, t, { captions: c }); }, [script, timing, process.argv.includes("--captions")]);
+await page.evaluate(async ([s, t, c]) => { await document.fonts.ready; await window.init(s, t, { captions: c }); }, [script, timing, process.argv.includes("--captions")]);
 
 // preload-wait: let SVG <image> assets decode
 await page.evaluate(() => window.render(66));

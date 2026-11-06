@@ -67,3 +67,6 @@ TikTok and Instagram numbers for Nov 2 to 4 showed most viewers leave in the fir
 5. **Sector scene** (`visual.type: "sectors"`, rows `{name, pct, at}`, 11 SPDR sector ETFs XLK XLF XLE XLV XLY XLP XLI XLU XLRE XLB XLC) plus a breadth chip (`SECTORS DOWN 11 OF 11`). Sources: viridian-market-data job (Yahoo) and Robinhood quotes. Other markets (oil CL=F, 10-yr ^TNX in basis points, gold GC=F, bitcoin) come from the same job; only show a number when a news close agrees.
 6. Sign-off: "Stay with us for the next market close." Video length is whatever the information needs.
 7. Log the posting time and analytics screenshots in memory (tiktok-analytics.md).
+
+## 3D end card (Nov 6)
+The end card is a 3D spin of the V logo coin, rendered once in Blender 5.2 (`blender/vlogo3d.py`, `pip install bpy==5.2.0`; about 10 minutes for 90 frames on 4 cores) into `template/assets/vlogo3d/f001..f090.webp` (transparent). `flat4.html` draws the frames on a canvas in the end scene and falls back to the flat logo if the frames are missing. Re-render only when the logo or look changes; `render.mjs` now awaits `window.init` so frames are decoded before the first shot.

@@ -16,6 +16,7 @@ body.captions #cap{display:block}
 .nc .v.tx{font-size:15px;letter-spacing:.2px;padding:6px 0 4px}
 #nums .row{display:flex;gap:8px;width:100%;justify-content:center;position:absolute;left:0;top:0}
 #nums .row.sm .v{font-size:21px}#nums .row.sm .l{font-size:8.5px;letter-spacing:1px}#nums .row.sm .nc{padding:8px 6px 9px}
+#v3d{position:absolute;left:20px;top:152px;width:500px;height:500px;display:none;pointer-events:none}
 #hook{position:absolute;left:0;right:0;top:132px;text-align:center;opacity:0;pointer-events:none}
 #hook .l{font-weight:800;font-size:13px;letter-spacing:3.5px;color:#5B6782}
 #hook .v{font-weight:900;font-size:66px;line-height:1.02;letter-spacing:-1.5px}
@@ -45,7 +46,7 @@ const P={cream:'#F4ECDF',cream2:'#EADFCD',cream3:'#DFD1BB',ink:'#3E4A63',ink2:'#
   butter:'#F6D186',butter2:'#E9B65A',butter3:'#FBEBC5',sky:'#A7C7EA',sky2:'#7FA8D8',sky3:'#D5E5F6',lav:'#C3B3E6',lav2:'#9E8AD3',lav3:'#E6DEF5',peach:'#F7C3A0',white:'#FFFDF8'};
 const NS='http://www.w3.org/2000/svg';
 const stage=document.getElementById('stage');
-let S,T,SC=[];
+let S,T,SC=[];const PRELOAD=[];
 const CX=270,CY=350;
 function wordTime(sc,key){if(!key)return sc.t0+.3;const w=sc.words.find(w=>w.w.replace(/[^\w&]/g,'').toLowerCase().startsWith(key.toLowerCase()));return w?w.t0:sc.t0+.3;}
 
@@ -226,12 +227,22 @@ B.ahead=(v,sc)=>{const items=[disc(215,P.cream2,0),I(`<g>${A.capitol()}</g>`,CX,
   I(`<g>${A.gauge()}</g>`,CX,CY+170,{w:'options',o:-.2},{s:.95}),I(A.coin(.8),CX+90,CY+130,{w:'options',o:.1},{bob:5})];
   return makeScene(sc,items,(t,l,o)=>{const n=o.its[8].g.querySelector('.needle');n.setAttribute('transform',`rotate(${Math.sin(t*2.4)*30})`);});};
 
-B.end=(v,sc)=>{const items=[
+// 3D V logo coin (Blender, blender/vlogo3d.py): frames assets/vlogo3d/f001.webp.. drawn on a canvas; flat logo is the fallback
+const V3D={n:90,fps:30,imgs:[],ok:false};
+function loadV3D(){if(V3D.loading)return;V3D.loading=true;
+  for(let i=1;i<=V3D.n;i++){const im=new Image();im.src='assets/vlogo3d/f'+String(i).padStart(3,'0')+'.webp';V3D.imgs.push(im);}
+  PRELOAD.push(Promise.all(V3D.imgs.map(im=>im.decode())).then(()=>{V3D.ok=true;}).catch(()=>{V3D.ok=false;}));}
+B.end=(v,sc)=>{loadV3D();
+  const cv=document.createElement('canvas');cv.width=720;cv.height=720;cv.id='v3d';document.body.appendChild(cv);
+  const items=[
   ...confetti(22,11),
   I(`<g>${[...Array(16)].map((_,i)=>rr(-5,-300,10,50,5,i%2?P.butter:P.mint,`transform="rotate(${i*22.5})" opacity=".55"`)).join('')}</g>`,CX,CY,.3,{spin:6,dur:.8}),
-  I(`<g><clipPath id="lc"><circle r="214"/></clipPath><image href="assets/vc-logo.png" x="-216" y="-216" width="432" height="432" clip-path="url(#lc)"/></g>`,CX,CY,.15,{dur:.8,bob:3,bobf:1.5}),
+  I(`<g id="flatlogo"><clipPath id="lc"><circle r="214"/></clipPath><image href="assets/vc-logo.png" x="-216" y="-216" width="432" height="432" clip-path="url(#lc)"/></g>`,CX,CY,.15,{dur:.8,bob:3,bobf:1.5}),
   ...[[-210,-190],[205,-180],[-215,160],[210,170],[0,-250],[0,250]].map((p,i)=>I(A.star(1.4),CX+p[0],CY+p[1],.8+i*.12,{spin:25}))];
-  return makeScene(sc,items);};
+  const R=makeScene(sc,items,(t,l,o)=>{const use=V3D.ok;const fl=o.its.find(i=>i.svg.includes('id="flatlogo"')).g;
+    if(use){fl.style.display='none';const k=eo(prog(t,sc.t0-.25,.3));cv.style.display='block';cv.style.opacity=k;cv.style.transform='translateX('+((1-k)*46)+'px)';
+      const fi=Math.min(V3D.n-1,Math.max(0,Math.floor((t-sc.t0)*V3D.fps)));const c=cv.getContext('2d');c.clearRect(0,0,720,720);c.drawImage(V3D.imgs[fi],0,0,720,720);}
+    else{cv.style.display='none';}});R.off=()=>{cv.style.display='none';};return R;};
 
 
 
@@ -464,11 +475,11 @@ function drawCap(t){const cap=document.getElementById('cap');let ch=null;for(con
   [...cap.children].forEach((s,i)=>{const w=ch[i];s.className=t>=w.t1?'done':(t>=w.t0?'on':'')});}
 
 window.init=(script,timing,opts={})=>{S=script;T=timing;if(opts.captions)document.body.classList.add('captions');
-  S.scenes.forEach((s,i)=>{SC.push(B[s.visual.type](s.visual,T.scenes[i]));});buildChunks();buildNums();window.__ready=true;};
+  S.scenes.forEach((s,i)=>{SC.push(B[s.visual.type](s.visual,T.scenes[i]));});buildChunks();buildNums();return Promise.all(PRELOAD).then(()=>{window.__ready=true;});};
 window.render=t=>{
   [['bgc1',70,160,22,.9],['bgc2',420,120,16,.7],['bgc3',250,230,12,1.1]].forEach(([id,x,y,sp,ph])=>{const e=document.getElementById(id);const w=(x+t*sp)%640-60;e.setAttribute('transform',`translate(${w} ${y+Math.sin(t*.5+ph)*8})`);e.style.opacity=.9;});
   SC.forEach((o,i)=>{const a=o.sc.t0-.25,b=o.sc.t1-.15;const last=i===SC.length-1;
-    const kin=eo(prog(t,a,.3)),kout=last?0:eio(prog(t,b,.3));const op=kin*(1-kout);o.root.style.display=op>0.001?'':'none';
+    const kin=eo(prog(t,a,.3)),kout=last?0:eio(prog(t,b,.3));const op=kin*(1-kout);o.root.style.display=op>0.001?'':'none';if(op<=0.001&&o.off)o.off();
     if(op>0.001){updScene(o,t);o.root.style.opacity=op;
       const cs=1+.045*eio(prog(t,o.sc.t0-.25,o.sc.t1-o.sc.t0+.4)),dx=(1-kin)*46-kout*46,dy=Math.sin(t*.6+i)*2.5;
       o.root.setAttribute('transform',`translate(${dx.toFixed(2)} ${dy.toFixed(2)}) translate(270 588.8) scale(.88) translate(-270 -565) translate(${CX} ${CY}) scale(${cs.toFixed(4)}) translate(${-CX} ${-CY})`);}});drawCap(t);drawNums(t);drawHook(t);};
