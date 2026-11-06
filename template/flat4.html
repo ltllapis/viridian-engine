@@ -16,6 +16,10 @@ body.captions #cap{display:block}
 .nc .v.tx{font-size:15px;letter-spacing:.2px;padding:6px 0 4px}
 #nums .row{display:flex;gap:8px;width:100%;justify-content:center;position:absolute;left:0;top:0}
 #nums .row.sm .v{font-size:21px}#nums .row.sm .l{font-size:8.5px;letter-spacing:1px}#nums .row.sm .nc{padding:8px 6px 9px}
+#hook{position:absolute;left:0;right:0;top:132px;text-align:center;opacity:0;pointer-events:none}
+#hook .l{font-weight:800;font-size:13px;letter-spacing:3.5px;color:#5B6782}
+#hook .v{font-weight:900;font-size:66px;line-height:1.02;letter-spacing:-1.5px}
+#hook.up .v{color:#2F8A66}#hook.dn .v{color:#C45A4B}
 #hdr{position:absolute;left:0;right:0;top:128px;display:flex;justify-content:center;gap:8px;opacity:0}
 #hdr span{font-weight:800;font-size:11px;letter-spacing:2px;padding:6px 12px;border-radius:14px;background:#FFFDF8;color:#5B6782;box-shadow:0 3px 8px rgba(62,74,99,.12)}
 #hdr .a{background:#E07A6B;color:#fff}#hdr .c:empty{display:none}
@@ -28,6 +32,7 @@ body.captions #cap{display:block}
 <body>
 <svg id="stage" width="540" height="960" viewBox="35 50 470 835"></svg>
 <div id="nums"></div>
+<div id="hook"></div>
 <div id="cap"></div>
 <script>
 const clamp=(x,a=0,b=1)=>Math.max(a,Math.min(b,x));
@@ -332,6 +337,23 @@ B.aidriver=(v,sc)=>{const tV=wordTime(sc,'VIX');
    I(`<g>${A.gauge()}</g>`,CX+100,CY+138,{w:'VIX',o:-.7},{s:.82,id:'gg'})];
   return makeScene(sc,items,(t,l,o)=>{const a=lerp(-58,58,eio(prog(t,tV,1.2)))+Math.sin(t*14)*3*(1-prog(t,tV,.1));byId(o,'gg').g.querySelector('.needle').setAttribute('transform',`rotate(${a})`);});};
 
+B.sectors=(v,sc)=>{const rows=[...v.rows].sort((a,b)=>b.pct-a.pct);const mn=Math.max(.01,...rows.map(r=>Math.max(0,-r.pct))),mp=Math.max(.01,...rows.map(r=>Math.max(0,r.pct)));
+  const X0=-62,W=170,zx=X0+W*mn/(mn+mp),sc2=W/(mn+mp),pitch=25,y0=-(rows.length-1)*pitch/2+8;
+  const ts=sc.t0+.4;
+  let g=rr(-182,-(rows.length*pitch+44)/2-10,364,rows.length*pitch+64,22,P.white);
+  g+=`<text x="0" y="${y0-26}" text-anchor="middle" font-family="Montserrat" font-weight="800" font-size="10.5" letter-spacing="2" fill="${P.ink2}">${v.title||'S&P 500 SECTORS TODAY'}</text>`;
+  g+=`<rect x="${zx-1}" y="${y0-14}" width="2" height="${rows.length*pitch}" fill="${P.ink3}" opacity=".7"/>`;
+  rows.forEach((r,i)=>{const y=y0+i*pitch,up=r.pct>=0,w=Math.abs(r.pct)*sc2;
+    g+=`<rect class="bd" data-i="${i}" x="-172" y="${y-12}" width="344" height="24" rx="8" fill="${P.butter3}" opacity="0"/>`;
+    g+=`<text x="-166" y="${y+4}" font-family="Montserrat" font-weight="800" font-size="9.5" letter-spacing=".6" fill="${P.ink}">${r.name}</text>`;
+    g+=`<rect class="sb" data-i="${i}" x="${up?zx:zx-w}" y="${y-8}" width="${w}" height="16" rx="5" fill="${up?P.mint:P.coral}" stroke="none" style="transform-box:fill-box;transform-origin:${up?'left':'right'} center"/>`;
+    g+=`<text class="sv" x="166" y="${y+4}" text-anchor="end" font-family="Montserrat" font-weight="900" font-size="11" fill="${up?'#2F8A66':'#C45A4B'}">${up?'+':'−'}${Math.abs(r.pct).toFixed(1)}%</text>`;});
+  const items=[disc(215,P.cream2,0),I(`<g>${g}</g>`,CX,CY+6,0.05,{id:'sec',s:1})];
+  const tAt=rows.map(r=>r.at?wordTime(sc,r.at):null);
+  return makeScene(sc,items,(t,l,o)=>{const gg=byId(o,'sec').g;gg.querySelectorAll('.sb').forEach(b=>{const i=+b.dataset.i;const k=eob(prog(t,ts+i*.09,.5));b.style.transform='scaleX('+clamp(k)+')';const ta=tAt[i];
+      const on=ta!=null&&t>ta&&t<ta+2.2;gg.querySelector('.bd[data-i="'+i+'"]').setAttribute('opacity',on?1:0);});
+    gg.querySelectorAll('.sv').forEach((e,i)=>{e.style.opacity=clamp(prog(t,ts+i*.09+.25,.3));});});};
+
 B.msftamzn=(v,sc)=>{const t1=wordTime(sc,v.cards[0].at),t2=wordTime(sc,v.cards[1].at);const base=CY+112,ta=t2-.05;
   const items=[I(`<circle r="150" fill="${P.cream2}"/>`,CX,CY-110,{w:v.cards[0].at,o:-.4},{dur:.7}),I(`<circle r="150" fill="${P.cream2}"/>`,CX,CY+150,{w:v.cards[1].at,o:-.4},{dur:.7}),
    I(`<g>${A.cloud()}</g>`,CX,CY-90,{w:v.cards[0].at,o:-.3},{s:.78,id:'cl',fn:(t)=>{const k=eio(prog(t,t1-.05,.9));return {y:CY-86-k*40+Math.sin(t*2)*2}}}),
@@ -421,6 +443,9 @@ function buildNums(){const host=document.getElementById('nums');
       el.innerHTML='<div class="l">'+c.label+'</div><div class="v'+(c.num==null&&c.delta!=null?' dv':'')+(c.text?' tx':'')+'"></div>'+(c.num!=null&&c.delta!=null?'<div class="d">'+(c.delta>=0?'▲ ':'▼ ')+Math.abs(c.delta).toFixed(c.ddec??2)+'%</div>':'');
       row.appendChild(el);return {el,c,at:c.at?wordTime(sc,c.at)+(c.o||0):sc.t0+.2,v:el.querySelector('.v')};});
     NC.push({row,items,sc,tag:s.tag||''});});}
+function drawHook(t){const h=S.hook,el=document.getElementById('hook');if(!h){el.style.opacity=0;return}
+  if(!el.dataset.b){const dir=h.delta>=0?'up':'dn';el.className=dir;el.innerHTML='<div class="l">'+h.label+'</div><div class="v">'+(h.delta>=0?'▲ ':'▼ ')+(h.approx?'~':'')+Math.abs(h.delta).toFixed(h.ddec??1)+'%</div>';el.dataset.b=1}
+  const end=T.scenes[0].t1-.3,k=clamp(eob(prog(t,0,.25))),x=prog(t,end-.3,.3);el.style.opacity=(t<=end?1:0)*(1-x)*Math.max(.001,k);el.style.transform='scale('+(.9+.1*k)+')';}
 function drawNums(t){let tag='';NC.forEach(g=>{const vis=t>=g.sc.t0-.1&&t<=g.sc.t1-.05;g.row.style.display=vis?'flex':'none';if(!vis)return;tag=g.tag;
   const ex=prog(t,g.sc.t1-.4,.3);
   g.items.forEach(it=>{const k=clamp(eob(prog(t,it.at,.5)));const cnt=eo(prog(t,it.at+.05,.9));const c=it.c;
@@ -446,5 +471,5 @@ window.render=t=>{
     const kin=eo(prog(t,a,.3)),kout=last?0:eio(prog(t,b,.3));const op=kin*(1-kout);o.root.style.display=op>0.001?'':'none';
     if(op>0.001){updScene(o,t);o.root.style.opacity=op;
       const cs=1+.045*eio(prog(t,o.sc.t0-.25,o.sc.t1-o.sc.t0+.4)),dx=(1-kin)*46-kout*46,dy=Math.sin(t*.6+i)*2.5;
-      o.root.setAttribute('transform',`translate(${dx.toFixed(2)} ${dy.toFixed(2)}) translate(270 588.8) scale(.88) translate(-270 -565) translate(${CX} ${CY}) scale(${cs.toFixed(4)}) translate(${-CX} ${-CY})`);}});drawCap(t);drawNums(t);};
+      o.root.setAttribute('transform',`translate(${dx.toFixed(2)} ${dy.toFixed(2)}) translate(270 588.8) scale(.88) translate(-270 -565) translate(${CX} ${CY}) scale(${cs.toFixed(4)}) translate(${-CX} ${-CY})`);}});drawCap(t);drawNums(t);drawHook(t);};
 </script></body></html>

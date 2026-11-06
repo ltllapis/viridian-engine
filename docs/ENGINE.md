@@ -57,3 +57,13 @@ Frames and clips are not committed (see `.gitignore`).
 4. **Our own sound kit**: an intro sting, music bed and effects made for the channel, so every video sounds like ours.
 5. **Explainer segments**: short reusable "what is the VIX / what is a rate cut" scenes viewers can learn from.
 6. **Automated data pull**: run the market-data Action daily once its secret is set.
+
+## Daily run rules from the analytics review (Nov 6)
+TikTok and Instagram numbers for Nov 2 to 4 showed most viewers leave in the first second, reach comes in a burst of about five hours, and searches match named topics. So:
+1. **Cold open.** `script.hook = {label, delta, ddec}` draws the day's biggest move as a big number from frame 1 (flat4 `drawHook`). The first spoken sentence is the headline within about two seconds, then the question hook.
+2. **Voice lead 0.2 s** (not 0.5): `python3 template/timing.py <day> [lead]` builds `timing.json` and `voice.wav` from `voice.mp3` (pocketsphinx word times, matched to the script words).
+3. **Caption first line is a searchable phrase** ("US stock market today, <date>: ...") followed by the named topics in the story (companies, event). Add a reason to follow ("Follow for the market close every day") and the disclaimer, then hashtags.
+4. **One plain-English line** on why the move matters, for new investors.
+5. **Sector scene** (`visual.type: "sectors"`, rows `{name, pct, at}`, 11 SPDR sector ETFs XLK XLF XLE XLV XLY XLP XLI XLU XLRE XLB XLC) plus a breadth chip (`SECTORS DOWN 11 OF 11`). Sources: viridian-market-data job (Yahoo) and Robinhood quotes. Other markets (oil CL=F, 10-yr ^TNX in basis points, gold GC=F, bitcoin) come from the same job; only show a number when a news close agrees.
+6. Sign-off: "Stay with us for the next market close." Video length is whatever the information needs.
+7. Log the posting time and analytics screenshots in memory (tiktok-analytics.md).
