@@ -348,6 +348,41 @@ B.aidriver=(v,sc)=>{const tV=wordTime(sc,'VIX');
    I(`<g>${A.gauge()}</g>`,CX+100,CY+138,{w:'VIX',o:-.7},{s:.82,id:'gg'})];
   return makeScene(sc,items,(t,l,o)=>{const a=lerp(-58,58,eio(prog(t,tV,1.2)))+Math.sin(t*14)*3*(1-prog(t,tV,.1));byId(o,'gg').g.querySelector('.needle').setAttribute('transform',`rotate(${a})`);});};
 
+// ---- Nov 6 art: rebound, chip bounce, jobs report ----
+B.bounce=(v,sc)=>{const tb=wordTime(sc,'bounced')-.05;const L=[40,60,78,100],R=[52,72,92,112];
+  const items=[disc(215,P.cream2,0),
+   I(`<g>${A.nyse()}</g>`,CX,CY+92,.05,{s:.8}),
+   I(`<g>${A.coin(1)}</g>`,CX,CY-120,.1,{id:'bl',s:2.1,from:'none',fn:(t,t0)=>{const a=prog(t,t0+.05,.45);const g=Math.abs(Math.sin(Math.max(0,t-tb)*4.2))*(t>=tb?1:0);const fall=t<tb?clamp(eio(prog(t,t0+.1,Math.max(.3,tb-t0-.1)))):1;const y=t<tb?CY-170+fall*190:CY+20-(Math.max(0,1-(t-tb)*.45))*g*190;return {x:CX,y,r:(t-t0)*60,s:2.1*clamp(eob(a))}}}),
+   ...L.map((h,i)=>I(A.candle(h,true),CX-176+i*20,CY+176-h/2,{w:'bounced',o:.15+i*.1},{from:'up'})),
+   ...R.map((h,i)=>I(A.candle(h,true),CX+116+i*20,CY+176-h/2,{w:'bounced',o:.25+i*.1},{from:'up'})),
+   I(A.arrow(P.mint2,true,1.1),CX-168,CY-90,{w:'bounced',o:.2},{bob:6}),I(A.arrow(P.mint2,true,1.1),CX+168,CY-90,{w:'bounced',o:.3},{bob:6}),
+   ...stars4(sc,'bounced',[[-120,-150],[130,-140],[-150,40],[160,20]],.3),
+   ...confetti(8,7)];
+  return makeScene(sc,items);};
+
+B.chipbounce=(v,sc)=>{const tl=wordTime(sc,'led');
+  const items=[disc(215,P.cream2,0),
+   I(`<g>${A.chip(.55)}</g>`,CX,CY+40,.1,{id:'cp',from:'none',fn:(t,t0)=>{const k=eio(prog(t,tl-.1,1.0));const dip=t<tl-.1?Math.sin(t*50)*1.6*prog(t,t0+.5,.3):0;return {x:CX+dip,y:CY+70-k*150,r:k*8,s:1*clamp(eob(prog(t,t0+.05,.35)))}}}),
+   I(`<g>${A.calendar()}</g>`,CX-150,CY-120,{w:'2020',o:-.2},{s:.8,bob:4,r:-8}),
+   I(A.arrow(P.coral2,false,.7),CX-150,CY-30,{w:'crash',o:-.2},{bob:4}),
+   I(A.arrow(P.mint2,true,1.2),CX+150,CY+10,{w:'led',o:.1},{bob:6}),I(A.arrow(P.mint2,true,.8),CX+160,CY+110,{w:'led',o:.3},{bob:6}),
+   ...[48,70,92].map((h,i)=>I(A.candle(h,true),CX-70+i*70,CY+176-h/2,{w:'led',o:.2+i*.12},{from:'up'})),
+   I(A.coin(1),CX+130,CY-150,{w:'led',o:.4},{bob:6}),
+   ...stars4(sc,'led',[[-120,60],[120,-60]],.3),
+   ...confetti(6,11)];
+  return makeScene(sc,items);};
+
+B.jobs=(v,sc)=>{const tj=wordTime(sc,'jobs'),th=wordTime(sc,'hike'),tr=wordTime(sc,'unemployment');
+  const bag=`<g>${shadow(120,92)}${st('M-26 -34V-50Q-26 -62 -14 -62H14Q26 -62 26 -50V-34',P.ink2,9)}${rr(-84,-36,168,104,16,P.peach)}${rr(-84,-36,168,38,14,P.butter2,'opacity=".55"')}${rr(-84,2,168,6,0,P.ink2,'opacity=".25"')}${rr(-14,-6,28,22,6,P.butter)}${rr(-14,-6,28,22,6,'none')}</g>`;
+  const items=[disc(215,P.cream2,0),
+   I(bag,CX,CY-40,.1,{s:1,from:'none',fn:(t,t0)=>({x:CX,y:CY-40+(1-clamp(eob(prog(t,t0+.1,.5))))*-60,s:clamp(eob(prog(t,t0+.1,.5)))})}),
+   ...[34,54,76,100].map((h,i)=>I(A.candle(h,true,18),CX-150+i*30,CY+150-h/2,{w:'jobs',o:.2+i*.14},{from:'up'})),
+   I(`<g>${A.gauge()}</g>`,CX+110,CY+130,{w:'hike',o:-.6},{s:.82,id:'gg'}),
+   I(A.arrow(P.mint2,true,.8),CX+170,CY-90,{w:'jobs',o:.4},{bob:5}),
+   I(A.coin(1),CX-170,CY-110,{w:'jobs',o:.5},{bob:5}),
+   ...stars4(sc,'jobs',[[130,-150],[-130,20]],.3)];
+  return makeScene(sc,items,(t,l,o)=>{const a=lerp(-58,38,eio(prog(t,th-.2,1.0)))+Math.sin(t*14)*2.5*(1-prog(t,th,.1));byId(o,'gg').g.querySelector('.needle').setAttribute('transform',`rotate(${a})`);});};
+
 B.sectors=(v,sc)=>{const rows=[...v.rows].sort((a,b)=>b.pct-a.pct);const mn=Math.max(.01,...rows.map(r=>Math.max(0,-r.pct))),mp=Math.max(.01,...rows.map(r=>Math.max(0,r.pct)));
   const X0=-62,W=170,zx=X0+W*mn/(mn+mp),sc2=W/(mn+mp),pitch=25,y0=-(rows.length-1)*pitch/2+8;
   const ts=sc.t0+.4;
@@ -358,7 +393,7 @@ B.sectors=(v,sc)=>{const rows=[...v.rows].sort((a,b)=>b.pct-a.pct);const mn=Math
     g+=`<rect class="bd" data-i="${i}" x="-172" y="${y-12}" width="344" height="24" rx="8" fill="${P.butter3}" opacity="0"/>`;
     g+=`<text x="-166" y="${y+4}" font-family="Montserrat" font-weight="800" font-size="9.5" letter-spacing=".6" fill="${P.ink}">${r.name}</text>`;
     g+=`<rect class="sb" data-i="${i}" x="${up?zx:zx-w}" y="${y-8}" width="${w}" height="16" rx="5" fill="${up?P.mint:P.coral}" stroke="none" style="transform-box:fill-box;transform-origin:${up?'left':'right'} center"/>`;
-    g+=`<text class="sv" x="166" y="${y+4}" text-anchor="end" font-family="Montserrat" font-weight="900" font-size="11" fill="${up?'#2F8A66':'#C45A4B'}">${up?'+':'−'}${Math.abs(r.pct).toFixed(1)}%</text>`;});
+    g+=`<text class="sv" x="166" y="${y+4}" text-anchor="end" font-family="Montserrat" font-weight="900" font-size="11" fill="${up?'#2F8A66':'#C45A4B'}">${Math.abs(r.pct)<.05?'':(up?'+':'−')}${Math.abs(r.pct)<.05?'0.0':Math.abs(r.pct).toFixed(1)}%</text>`;});
   const items=[disc(215,P.cream2,0),I(`<g>${g}</g>`,CX,CY+6,0.05,{id:'sec',s:1})];
   const tAt=rows.map(r=>r.at?wordTime(sc,r.at):null);
   return makeScene(sc,items,(t,l,o)=>{const gg=byId(o,'sec').g;gg.querySelectorAll('.sb').forEach(b=>{const i=+b.dataset.i;const k=eob(prog(t,ts+i*.09,.5));b.style.transform='scaleX('+clamp(k)+')';const ta=tAt[i];
@@ -436,7 +471,7 @@ B.duochart=(v,sc)=>{const cards=v.cards.map((c,i)=>{const s={...c,t0:wordTime(sc
   return makeScene(sc,items,(t,l,o)=>cards.forEach((c,i)=>c.ch.upd(o.its[i].g,t)));};
 B.schart=(v,sc)=>{const ser=v.series.map(s=>({...s,t0:wordTime(sc,s.at)-.05,dur:s.dur||1.4}));const N=Math.max(...ser.map(s=>(s.i0||0)+s.pts.length));
   const ch=mkChart({w:450,h:380,series:ser,N,pl:118,pr:30,pt:66,pb:42,lw:5.5,zlabel:v.zlabel,zleft:true,divider:v.divider,timeLabels:v.timeLabels,title:v.title,zpulse:wordTime(sc,v.zpulseAt||'erasing')});
-  const svg=`<g>${ch.svg}<g transform="translate(${-450/2+62} ${-380/2+100})">${ci(0,0,44,P.mint3)}${(ICON[v.sym]||(()=>''))()}</g></g>`;
+  const svg=`<g>${ch.svg}${ICON[v.sym]?`<g transform="translate(${-450/2+62} ${-380/2+100})">${ci(0,0,44,P.mint3)}${ICON[v.sym]()}</g>`:''}</g>`;
   const items=[disc(220,P.cream2,-.1),I(svg,CX,CY-8,0,{id:'ch'}),I(A.coin(.8),CX+190,CY-205,{w:v.series[v.series.length-1].at,o:1.6},{bob:5}),I(A.star(1),CX-196,CY+176,{w:v.series[v.series.length-1].at,o:1.8},{spin:30})];
   return makeScene(sc,items,(t,l,o)=>ch.upd(o.its[1].g,t));};
 
