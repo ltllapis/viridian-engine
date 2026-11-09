@@ -70,3 +70,12 @@ TikTok and Instagram numbers for Nov 2 to 4 showed most viewers leave in the fir
 
 ## 3D end card (Nov 6)
 The end card is a 3D spin of the V logo coin, rendered once in Blender 5.2 (`blender/vlogo3d.py`, `pip install bpy==5.2.0`; about 10 minutes for 90 frames on 4 cores) into `template/assets/vlogo3d/f001..f090.webp` (transparent). `flat4.html` draws the frames on a canvas in the end scene and falls back to the flat logo if the frames are missing. Re-render only when the logo or look changes; `render.mjs` now awaits `window.init` so frames are decoded before the first shot.
+
+## Top news in every recap (from Nov 9, Vince: "Include top news to our daily recap videos")
+Every day has one `news` scene right after the indexes: 1 to 3 headlines that drove the market, each on a card that slides in on a spoken word.
+1. **Gather** with WebSearch (and fetch where allowed): ask what moved the market today, the biggest stock stories and oil/rates/Fed/policy. Pick the 1 to 3 stories that explain the biggest moves.
+2. **Two-source rule.** A headline is used only if two different outlets report it (wire plus a second outlet, e.g. AP and CNBC). Single-source or unconfirmed claims stay out. Search snippets count, but say so in `data-check.md`. Do not state a cause as fact when outlets say "reportedly"; word it as "reports" or "said".
+3. **Write** `days/<day>/news.json`: `[{"headline", "why" (one plain-English line), "sources":[{"name","url"},{"name","url"}]}]`, one entry per card, same order.
+4. **Script**: scene `{"id":"news","mood":..,"tag":"TOP NEWS","visual":{"type":"news","title":"TOP NEWS TODAY","items":[{"lines":["max 28 chars","max 28 chars"],"src":"AP + CNBC","at":"spoken word"}]},"text":...}`. Spoken style: story first, plain words, numbers only if already among the ~six spoken (headline cards carry words, not figures). Sensitive stories about people: state only what the outlets confirm, no speculation, no details beyond the business impact.
+5. **Check**: `qa.py` FAILs (from 2026-11-09) when there is no news scene, news.json is missing, an item has fewer than two named sources with urls, an anchor word is not spoken, or a headline line exceeds 28 characters. Add a News section to `data-check.md` listing each headline with its two sources.
+6. **Caption**: add one line "Top news: ..." and the story names as hashtags/keywords; the news `why` line is the plain-English line for new investors.
