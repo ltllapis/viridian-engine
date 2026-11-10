@@ -14,6 +14,7 @@ Checks (FAIL stops the run, WARN is for a human to look at):
   charts    a chip's percent must match the real chart line (last bar vs previous close), same direction
   narration narration.txt equals the spoken words in timing.json
   market    (with --market-data) every chip percent/close equals the checked entry for that date; BLOCK entries FAIL, SINGLE-SOURCE entries WARN
+  news      (from 2026-11-09) a `news` scene with 1-3 headlines; days/<day>/news.json lists each with at least TWO different sources (name + url); every item's `at` word is spoken; headline lines fit the card; no digit in a headline the voice does not say
   rules     disclaimer present, numbers spoken per video, video length, safe zone pixels, loudness
 """
 import json, os, re, subprocess, sys, wave
@@ -187,6 +188,8 @@ def check(day, pixels=False, video=None, mdata=None):
         if vis.get("zpulseAt") and not any(w.startswith(norm(vis["zpulseAt"])) for w in wn):
             say("WARN", f"{sc['id']}: zpulseAt '{vis['zpulseAt']}' not spoken")
 
+    news_check(day, S, T, ts)
+
     # narration vs timing
     nar = [norm(w) for w in re.findall(r"\S+", open(f("narration.txt")).read())]
     spoken = [norm(w["w"]) for s in T["scenes"] for w in s["words"]]
@@ -233,6 +236,46 @@ def check(day, pixels=False, video=None, mdata=None):
 
 LABELS = {"DOW JONES": "DOW", "DOW CLOSE": "DOW", "S&P 500": "SPX", "S&P CLOSE": "SPX", "NASDAQ": "NASDAQ", "NASDAQ CLOSE": "NASDAQ", "VIX FEAR GAUGE": "VIX", "VIX": "VIX", "OIL": "OIL",
           "MICROSOFT": "MSFT", "AMAZON": "AMZN", "APPLE": "AAPL", "ALPHABET": "GOOGL", "META": "META", "NVIDIA": "NVDA", "TESLA": "TSLA", "ORACLE": "ORCL", "AMD": "AMD"}
+
+
+def news_check(day, S, T, ts):
+    """Top-news scene: present, confirmed by two sources, anchored and short enough to read."""
+    date = re.sub(r"[^0-9-]", "", os.path.basename(os.path.abspath(day))[:10])
+    required = date >= "2026-11-09"
+    lvl = "FAIL" if required else "WARN"
+    sc = next((x for x in S["scenes"] if x["visual"].get("type") == "news"), None)
+    if not sc:
+        say(lvl, "no `news` scene: every recap from Nov 9 2026 includes 1-3 top headlines that drove the day")
+        return
+    items = sc["visual"].get("items") or []
+    if not 1 <= len(items) <= 3:
+        say("FAIL", f"{sc['id']}: news scene has {len(items)} headlines (want 1 to 3)")
+    t = ts.get(sc["id"]); wn = [norm(w["w"]) for w in t["words"]] if t else []
+    spoken_digits = set(re.findall(r"\d+", " ".join(w["w"] for w in t["words"]))) if t else set()
+    for i, it in enumerate(items, 1):
+        k = it.get("at")
+        if not k or not any(w.startswith(norm(k)) for w in wn):
+            say("FAIL", f"{sc['id']}: headline {i} anchor word '{k}' is not spoken in the news scene")
+        lines = it.get("lines") or []
+        if not 1 <= len(lines) <= 2 or any(len(l) > 28 for l in lines):
+            say("FAIL", f"{sc['id']}: headline {i} must be 1-2 lines of at most 28 characters (card width): {lines}")
+        if set(re.findall(r"\d+", " ".join(lines))) - spoken_digits:
+            say("WARN", f"{sc['id']}: headline {i} shows a number the voice does not say; add it to the voice or data-check.md")
+    nj = os.path.join(day, "news.json")
+    if not os.path.exists(nj):
+        say("FAIL", "missing news.json (headline, why, sources with name and url for each news item)"); return
+    N = json.load(open(nj)); N = N.get("items", N) if isinstance(N, dict) else N
+    if len(N) < len(items):
+        say("FAIL", f"news.json has {len(N)} entries but the scene shows {len(items)} headlines")
+    for i, n in enumerate(N, 1):
+        names = {re.sub(r"\W", "", str(x.get("name", "")).lower()) for x in n.get("sources", []) if x.get("url")}
+        if len(names - {""}) < 2:
+            say("FAIL", f"news.json item {i} ('{n.get('headline', '')[:40]}') needs two different confirming sources with urls")
+        if not n.get("why"):
+            say("WARN", f"news.json item {i} has no `why` (one plain-English line for new investors)")
+    dc = open(os.path.join(day, "data-check.md")).read() if os.path.exists(os.path.join(day, "data-check.md")) else ""
+    if dc and not re.search(r"\bnews\b", dc, re.I):
+        say("WARN", "data-check.md has no News section; list each headline with its two sources")
 
 
 def market_check(S, repo, day):

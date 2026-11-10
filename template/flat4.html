@@ -292,6 +292,7 @@ Object.keys(B).forEach(k=>{const orig=B[k];B[k]=(v,sc)=>{const o=orig(v,sc);cons
     const start=typeof it.at==='object'?wordTime(sc,it.at.w)+(it.at.o||0):sc.t0+(it.at||0);o.its.push({...it,g,start});});return o;};});
 
 // ---------- v3 shapes and scenes (Nov 4): story-specific art, defined after the DETAIL wrapper so no shared detail pack is added ----------
+A.paper=(s=1)=>`<g transform="scale(${s})">${shadow(40,34)}${rr(-38,-30,76,62,7,P.white)}${rr(-38,-30,76,14,7,P.ink2)}${rr(-38,-22,76,6,0,P.ink2)}${rr(-30,-8,30,22,3,P.sky3)}${[-8,2,12].map(y=>rr(8,y,22,4,2,P.cream3)).join('')}${[18,25].map(y=>rr(-30,y,60,3.5,1.75,P.cream3)).join('')}</g>`;
 A.fog=()=>`<g>${[[-78,8,46],[-26,-8,60],[34,-2,56],[84,12,42]].map(([x,y,r])=>ci(x,y,r,P.cream3,'opacity=".95"')).join('')}${[[-52,-10,32],[8,-26,38],[60,-8,30]].map(([x,y,r])=>ci(x,y,r,P.white,'opacity=".8"')).join('')}${rr(-122,22,236,26,13,P.cream3,'opacity=".95"')}${rr(-96,30,170,8,4,P.white,'opacity=".6"')}</g>`;
 A.barrel=()=>`<g>${rr(-27,-36,54,72,12,P.ink2)}${rr(-27,-24,54,9,0,P.coral2)}${rr(-27,16,54,9,0,P.coral2)}${rr(-27,-36,54,10,8,P.ink)}${rr(-27,26,54,10,8,P.ink)}${rr(-19,-12,7,28,3.5,P.white,'opacity=".28"')}${pa('M6 -8C14 4 16 10 11 15C7 19 3 19 -1 15C-6 10 -3 4 6 -8Z',P.butter)}</g>`;
 A.waveCard=()=>`<g>${rr(-52,-32,104,64,16,P.white)}${rr(-52,-32,104,64,16,'none')}<path class="wv" d="M-38 0H38" fill="none" stroke="${P.lav2}" stroke-width="6" stroke-linecap="round" stroke-linejoin="round"/></g>`;
@@ -399,6 +400,21 @@ B.sectors=(v,sc)=>{const rows=[...v.rows].sort((a,b)=>b.pct-a.pct);const mn=Math
   return makeScene(sc,items,(t,l,o)=>{const gg=byId(o,'sec').g;gg.querySelectorAll('.sb').forEach(b=>{const i=+b.dataset.i;const k=eob(prog(t,ts+i*.09,.5));b.style.transform='scaleX('+clamp(k)+')';const ta=tAt[i];
       const on=ta!=null&&t>ta&&t<ta+2.2;gg.querySelector('.bd[data-i="'+i+'"]').setAttribute('opacity',on?1:0);});
     gg.querySelectorAll('.sv').forEach((e,i)=>{e.style.opacity=clamp(prog(t,ts+i*.09+.25,.3));});});};
+
+// News scene (Nov 9): visual {type:'news', title?, items:[{lines:['Line one','Line two'], src:'REUTERS + CNBC', at:'word'}]} max 3 items.
+// Every item needs two confirming sources (qa.py checks days/<day>/news.json). Headline text is plain words, no numbers the voice does not say.
+B.news=(v,sc)=>{const items=v.items.slice(0,3),pitch=96,y0=-(items.length-1)*pitch/2+22,cols=[P.mint,P.butter,P.lav,P.sky];
+  const esc=x=>String(x).replace(/&/g,'&amp;').replace(/</g,'&lt;');
+  const out=[disc(215,P.cream2,0),
+   I(`<g>${A.paper(1.15)}<text x="0" y="52" text-anchor="middle" font-family="Montserrat" font-weight="800" font-size="10.5" letter-spacing="2" fill="${P.ink2}">${esc(v.title||'TOP NEWS TODAY')}</text></g>`,CX,CY+y0-118,.05,{s:1,id:'nhead'})];
+  items.forEach((it,i)=>{const y=y0+i*pitch,c=it.col||cols[i%cols.length];
+    const g=`<g>${rr(-176,-39,352,78,16,P.white)}<rect class="hl" x="-176" y="-39" width="352" height="78" rx="16" fill="${P.butter3}" opacity="0"/>${rr(-176,-39,10,78,5,c)}${ci(-146,0,14,c,'opacity=".9"')}<text x="-146" y="5" text-anchor="middle" font-family="Montserrat" font-weight="900" font-size="14" fill="${P.ink}">${i+1}</text>`+
+     it.lines.slice(0,2).map((l,k)=>`<text x="-120" y="${-8+k*19}" font-family="Montserrat" font-weight="800" font-size="15.5" fill="${P.ink}">${esc(l)}</text>`).join('')+
+     `<text x="-120" y="${it.lines.length>1?31:22}" font-family="Montserrat" font-weight="700" font-size="9" letter-spacing="1.4" fill="${P.ink3}">${esc(it.src)}</text></g>`;
+    out.push(I(g,CX,CY+y,{w:it.at,o:-.2},{id:'nc'+i,from:'right',dur:.5,s:1}));});
+  const tAt=items.map(it=>wordTime(sc,it.at));
+  return makeScene(sc,out,(t,l,o)=>{items.forEach((it,i)=>{const on=t>tAt[i]-.1&&t<(tAt[i+1]!=null&&i+1<items.length?tAt[i+1]-.1:sc.t1);
+    const h=byId(o,'nc'+i).g.querySelector('.hl');if(h)h.setAttribute('opacity',on?1:0);});});};
 
 B.msftamzn=(v,sc)=>{const t1=wordTime(sc,v.cards[0].at),t2=wordTime(sc,v.cards[1].at);const base=CY+112,ta=t2-.05;
   const items=[I(`<circle r="150" fill="${P.cream2}"/>`,CX,CY-110,{w:v.cards[0].at,o:-.4},{dur:.7}),I(`<circle r="150" fill="${P.cream2}"/>`,CX,CY+150,{w:v.cards[1].at,o:-.4},{dur:.7}),
