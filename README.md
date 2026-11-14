@@ -16,7 +16,8 @@ Entertainment only. Not financial advice.
 ```bash
 npm install && npx playwright install chromium     # one time (also needs ffmpeg and python3 with numpy, soundfile, pillow)
 python3 -I template/qa.py examples/2026-11-04 --market-data market-data --pixels
-node template/preview.mjs examples/2026-11-04       # live player at http://localhost:4173
+node template/preview.mjs examples/2026-11-04       # simple live player at http://localhost:4173
+node studio/server.mjs                              # Viridian Studio at http://localhost:4180 (timeline, status strip, live refresh; see studio/README.md)
 node template/render.mjs examples/2026-11-04 --scene flat4.html --captions --out recap.mp4
 ```
 Stills for checking a beat: `node template/render.mjs <day> --scene flat4.html --captions --stills 3,12,22`.
