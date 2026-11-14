@@ -77,7 +77,7 @@ http.createServer((req, res) => {
     res.writeHead(200, { "content-type": "text/event-stream", "cache-control": "no-store", connection: "keep-alive" });
     res.write(`data: ${JSON.stringify({ type: "hello" })}\n\n`); clients.add(res); req.on("close", () => clients.delete(res)); return;
   }
-  if (u === "/api/days") return json(res, 200, [...days.keys()]);
+  if (u === "/api/days") { const names = [...days.keys()]; return json(res, 200, { days: names, default: names.find(n => stat(path.join(days.get(n), "voice.wav"))) || names[0] }); }   // open on the newest day that has a voice
   let m = /^\/api\/day\/([^/]+)$/.exec(u);
   if (m) { const i = dayInfo(m[1]); return i ? json(res, 200, i) : json(res, 404, { error: "unknown day" }); }
   m = /^\/day\/([^/]+)\/(.+)$/.exec(u);

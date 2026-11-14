@@ -123,10 +123,10 @@ function logAct(text){S.activity.unshift({at:new Date().toISOString(),text});S.a
 
 /* ---- loading ---- */
 async function loadDays(){
-  const days=await Studio.api('/api/days');
+  const {days,default:dflt}=await Studio.api('/api/days');
   $('daySel').innerHTML=days.map(d=>`<option>${d}</option>`).join('');
   const want=new URLSearchParams(location.search).get('day')||localStorage.getItem('studio.day');
-  S.day=days.includes(want)?want:days[0];$('daySel').value=S.day;
+  S.day=days.includes(want)?want:dflt;$('daySel').value=S.day;
 }
 async function load(keepT){
   S.ready=false;say('');
