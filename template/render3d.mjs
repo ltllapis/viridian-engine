@@ -20,7 +20,7 @@ await new Promise(r => srv.once("listening", r)); const port = srv.address().por
 const browser = await chromium.launch({ args: ["--use-gl=angle", "--use-angle=swiftshader", "--enable-unsafe-swiftshader", "--ignore-gpu-blocklist"] });
 const page = await browser.newPage({ viewport: { width: 540, height: 960 }, deviceScaleFactor: 2 });
 page.on("pageerror", e => console.error("PAGE ERROR", e.message));
-await page.goto(`http://127.0.0.1:${port}/${arg("--scene") || "flat3d.html"}?pr=${arg("--pr") || 1.5}`);
+await page.goto(`http://127.0.0.1:${port}/${arg("--scene") || "flat5.html"}?pr=${arg("--pr") || 1.5}`);
 await page.waitForFunction("typeof window.init==='function'", null, { timeout: 120000 });
 await page.evaluate(async ([s, t, c]) => { await document.fonts.ready; await window.init(s, t, { captions: c }); }, [script, timing, process.argv.includes("--captions")]);
 

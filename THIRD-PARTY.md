@@ -11,6 +11,6 @@ Standard open-source pieces we use but do not own. Check each license before sel
 | pocketsphinx | word timing and voice check | BSD-style |
 | Montserrat and Inter fonts (`template/fonts`) | on-screen text | SIL Open Font License |
 | Kenney interface and impact sounds | sound effects | CC0 |
-| three.js (not included here) | optional 3D look, vendored in viridian-recaps | MIT |
+| three.js r160 (`template/vendor/three`, with its LICENSE) | the 3D look (`flat5.html`) | MIT |
 
 The V logo (`template/assets/vc-logo.png`) belongs to the channel owner.

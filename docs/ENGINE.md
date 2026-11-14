@@ -35,6 +35,15 @@ Optional paid add-ons: ElevenLabs (Starter plan) for Veo backdrop clips, music o
 6. Render plain and captioned cuts, then the cover and caption.
 7. Push the day's files to the three repos (no mp4s; videos go in the Library).
 
+## The 3D look (`flat5.html`, standing look from Nov 14 2026)
+Vince picked the look of the 30-second ad for every daily video. `flat5.html` is that look driven by the normal `script.json` and `timing.json`, so nothing changes in how a day is written.
+- Each scene is a set in one three.js world, 14 units apart. The camera arrives on the scene start and drifts until the next one; fast moves get motion blur.
+- Scene types drawn in 3D: `ichart`, `schart`, `duochart`, `sectors` (up to 11 rows, negatives go left), `news` (up to 3 cards), `end`.
+- Any other type (`bounce`, `selloff`, `exit`, `wrap`, a new name) is an opener: on the first scene it shows the `script.hook` number over the real chart that matches it (a chart series or duochart card whose tag or title matches `hook.label`, scaled to end at `hook.delta`). No bespoke art is needed for a new story.
+- Optional fields: `hook.sub` (a short line under the hook number), `scene.headline` (big title for a scene; otherwise the visual title or the tag).
+- Render: `node template/render.mjs <day> --captions` (it hands 3D pages to `render3d.mjs`, which uses software WebGL). `qa.py --pixels` and `preview.mjs` use `flat5.html` too.
+- The older look is still one flag away: `--scene flat4.html`.
+
 ## Backdrop clips (optional look)
 `flatveo.html` plays frames from `template/_vbg/` behind the title, chips and captions. Make them from any 9:16 clip:
 ```

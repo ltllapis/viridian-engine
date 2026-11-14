@@ -10,6 +10,13 @@ import { fileURLToPath } from "node:url";
 const here = path.dirname(fileURLToPath(import.meta.url));
 const day = path.resolve(process.argv[2]);
 const arg = k => (process.argv.includes(k) ? process.argv[process.argv.indexOf(k) + 1] : null);
+// 3D pages (three.js import map: flat5) need a local server and software WebGL, so hand them to render3d.mjs.
+const sceneFile = arg("--scene") || "flat5.html";
+if (fs.readFileSync(path.join(here, sceneFile), "utf8").includes('type="importmap"')) {
+  const { spawnSync } = await import("node:child_process");
+  const a = process.argv.slice(2); if (!arg("--scene")) a.push("--scene", sceneFile);
+  process.exit(spawnSync(process.execPath, [path.join(here, "render3d.mjs"), ...a], { stdio: "inherit" }).status ?? 1);
+}
 const script = JSON.parse(fs.readFileSync(path.join(day, "script.json")));
 const timing = JSON.parse(fs.readFileSync(path.join(day, "timing.json")));
 const FPS = 30;
@@ -17,7 +24,7 @@ const FPS = 30;
 const browser = await chromium.launch();
 const page = await browser.newPage({ viewport: { width: 540, height: 960 }, deviceScaleFactor: 2 });
 page.on("pageerror", e => console.error("PAGE ERROR", e.message));
-await page.goto("file://" + path.join(here, arg("--scene") || "scene.html"));
+await page.goto("file://" + path.join(here, sceneFile));
 await page.evaluate(async ([s, t, c]) => { await document.fonts.ready; await window.init(s, t, { captions: c }); }, [script, timing, process.argv.includes("--captions")]);
 
 // preload-wait: let SVG <image> assets decode
