@@ -1,5 +1,5 @@
 // Live preview of a recap day. Edit script.json / timing.json / a scene HTML and the page reloads itself.
-//   node template/preview.mjs days/2026-11-04 [--scene flat4.html] [--port 4173]
+//   node template/preview.mjs days/2026-11-04 [--scene flat5.html] [--port 4173]
 // Open the printed address. Space = play/pause, arrows = step 1 s, S = safe-zone guides, C = captions.
 import http from "node:http";
 import fs from "node:fs";
@@ -9,7 +9,7 @@ import { fileURLToPath } from "node:url";
 const here = path.dirname(fileURLToPath(import.meta.url));
 const arg = (k, d) => (process.argv.includes(k) ? process.argv[process.argv.indexOf(k) + 1] : d);
 const day = path.resolve(process.argv[2] && !process.argv[2].startsWith("--") ? process.argv[2] : ".");
-const scene = arg("--scene", "flat4.html");
+const scene = arg("--scene", "flat5.html");
 const port = Number(arg("--port", 4173));
 const TYPES = { ".html": "text/html", ".js": "text/javascript", ".mjs": "text/javascript", ".css": "text/css", ".json": "application/json", ".png": "image/png", ".jpg": "image/jpeg", ".svg": "image/svg+xml", ".woff2": "font/woff2", ".woff": "font/woff", ".ttf": "font/ttf", ".wav": "audio/wav", ".mp3": "audio/mpeg", ".mp4": "video/mp4" };
 
