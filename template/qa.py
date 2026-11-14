@@ -331,7 +331,7 @@ def market_check(S, repo, day):
 def pixel_check(day, T):
     """Render a still in the middle of each scene and make sure the bottom ~18% (y>800 of 960) is empty background."""
     here = os.path.dirname(os.path.abspath(__file__))
-    scene = "flat4.html"
+    scene = "flat5.html"
     times = [round((s["t0"] + s["t1"]) / 2 + 0.4, 2) for s in T["scenes"]]
     env = dict(os.environ); env.setdefault("NODE_PATH", "/opt/node-tools/node_modules")
     r = subprocess.run(["node", os.path.join(here, "render.mjs"), day, "--scene", scene, "--captions", "--stills", ",".join(map(str, times))], capture_output=True, text=True, env=env)
