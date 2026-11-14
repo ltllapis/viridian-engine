@@ -24,7 +24,7 @@ try {
   await p.goto(s.url + "?day=smoke"); await p.waitForFunction(() => window.Studio && Studio.state.ready);
   await st(() => Studio.seek(7)); await p.click("#tabs button[data-id=adjust]");
   await p.fill(delta, "9.9"); await p.waitForFunction(() => Studio.state.ready && Studio.state.pending.size === 1);
-  await p.frameLocator("#f").locator("body").filter({ hasText: "9.9%" }).waitFor({ timeout: 5000 });   // the player shows the unsaved value
+  await p.frameLocator("#phone iframe.live").locator("body").filter({ hasText: "9.9%" }).waitFor({ timeout: 5000 });   // the player shows the unsaved value
   await p.fill(`textarea[data-p='["scenes",1,"text"]']`, "Stocks took off. The Dow jumped 9.9 percent."); await p.waitForTimeout(600);
   assert.equal(await p.locator(".blk.stale").count(), 1, "changed narration is flagged as needing a new voice");
   await shot("adjust");

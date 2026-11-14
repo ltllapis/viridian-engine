@@ -1,7 +1,8 @@
 // The player: loads a day, runs the scene page in an iframe, keeps audio in sync, draws each frame.
 import { $, S, Studio, fmt, curScene, rebuildDraft } from "./core.js";
 
-const F = $("f"), A = $("a"), Mu = $("m"), Sx = $("x");
+const frames = [$("f"), $("f2")], A = $("a"), Mu = $("m"), Sx = $("x");
+let F = frames[0];   // the frame on show; the other one is where the next version loads
 let clockT = 0, clockAt = 0, lastScene = -2, initSeq = 0;
 const say = m => ($("msg").textContent = m || "");
 
@@ -27,20 +28,26 @@ export async function load(keepT) {
 
 /** Restart the scene page with the current draft. Scene pages build themselves once, so a change means a fresh page. */
 export function reinit(keepT) {   // no keepT: stay where the playhead is when the page is ready (the viewer may have moved it meanwhile)
-  const seq = ++initSeq; S.ready = false;
+  const seq = ++initSeq;
+  const B = frames.find(x => x !== F);     // load into the hidden frame, show it once its first picture is drawn
   return new Promise(done => {
-    F.onload = async () => {
-      if (seq !== initSeq) return done();
+    B.onload = async () => {
+      if (seq !== initSeq || B.contentWindow.location.href === "about:blank") return done();
       try {
-        const w = F.contentWindow; await w.document.fonts.ready;
+        const w = B.contentWindow; await w.document.fonts.ready;
         await new Promise((r, j) => { let n = 0; const i = setInterval(() => { if (typeof w.init === "function") { clearInterval(i); r(); } else if (++n > 100) { clearInterval(i); j(new Error("this scene file has no init()")); } }, 50); });
         await w.init(JSON.parse(JSON.stringify(S.draft)), S.timing, { captions: S.caps });
         if (seq !== initSeq) return done();
+        const t = typeof keepT === "number" ? keepT : S.t;
+        w.render(Math.max(0, Math.min(S.timing.duration, t)));
+        await new Promise(r => requestAnimationFrame(() => requestAnimationFrame(r)));
+        if (seq !== initSeq) return done();
+        const old = F; F = B; B.classList.add("live"); old.classList.remove("live"); old.onload = null; old.src = "about:blank";
         S.ready = true; say(""); lastScene = -2; seek(typeof keepT === "number" ? keepT : S.t);
       } catch (e) { say("Scene error: " + e.message); }
       done();
     };
-    F.src = "/t/" + S.scene + "?r=" + Date.now();
+    B.src = "/t/" + S.scene + "?r=" + Date.now();
     layout();
   });
 }
@@ -90,11 +97,11 @@ function loop() {
 // fit the 540x960 scene to the stage
 export function layout() {
   const st = $("stage"), k = Math.max(0.1, Math.min((st.clientHeight - 28) / 960, (st.clientWidth - 28) / 540));
-  $("phone").style.width = 540 * k + "px"; $("phone").style.height = 960 * k + "px"; F.style.transform = `scale(${k})`;
+  $("phone").style.width = 540 * k + "px"; $("phone").style.height = 960 * k + "px"; for (const f of frames) f.style.transform = `scale(${k})`;
 }
 new ResizeObserver(layout).observe($("stage"));
 
 Studio.on("draft", e => { $("draftTag").style.display = S.pending.size ? "block" : "none"; if (!e || !e.noRender) reinitSoon(); });
 Studio.on("saved", e => { if (e && e.reload) load(); });
-Object.assign(Studio, { seek, setPlay, jump, seekScene, reload: load });
+Object.assign(Studio, { seek, setPlay, jump, seekScene, reload: load, frame: () => F });
 export function startLoop() { requestAnimationFrame(loop); }

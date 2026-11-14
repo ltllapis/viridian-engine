@@ -35,6 +35,7 @@ input[type=checkbox]{width:17px;height:17px;accent-color:var(--acc)}
 #stage{flex:1;min-width:0;display:flex;align-items:center;justify-content:center;background:radial-gradient(#2a2f3b,#181b22);border-radius:14px;border:1px solid var(--line);position:relative}
 #phone{position:relative;border-radius:22px;overflow:hidden;background:#000;box-shadow:0 12px 50px rgba(0,0,0,.55)}
 #phone iframe{position:absolute;left:0;top:0;width:540px;height:960px;border:0;transform-origin:0 0}
+#phone iframe:not(.live){visibility:hidden}   /* the next version of the scene loads here, then the two swap: no flicker while editing */
 #guides{position:absolute;inset:0;pointer-events:none;display:none}#guides.on{display:block}
 #guides .z{position:absolute;left:0;right:0;background:rgba(224,122,107,.26);border-top:1px dashed #fff;border-bottom:1px dashed #fff}
 #guides span{position:absolute;right:6px;font-size:10px;color:#fff;background:rgba(0,0,0,.5);padding:1px 6px;border-radius:6px}
@@ -72,7 +73,8 @@ pre{white-space:pre-wrap;font:12px/1.5 ui-monospace,monospace;color:#cfd5e2}
 .fld .ctl{display:flex;gap:6px;align-items:center;min-width:0}
 .ro{color:var(--mut);font-size:12.5px;padding:4px 0}
 #savebar{position:sticky;bottom:-12px;margin:12px -12px -12px;padding:10px 12px;background:var(--panel);border-top:1px solid var(--line);display:flex;gap:8px;align-items:center;flex-wrap:wrap}
-#savebar .state{color:var(--mut);font-size:12px;flex:1;min-width:90px}
+#savebar .state{color:var(--mut);font-size:12px;flex:1;min-width:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+#savebar{flex-wrap:nowrap}#savebar button{padding:6px 10px;white-space:nowrap}
 /* notes */
 .note{border:1px solid var(--line);border-left:4px solid var(--amber);border-radius:10px;padding:8px 10px;margin:8px 0;background:var(--panel2)}
 .note.done{opacity:.55;border-left-color:var(--acc)}.note.done .tx{text-decoration:line-through}

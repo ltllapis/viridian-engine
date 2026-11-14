@@ -34,7 +34,7 @@ $("play").onclick = () => setPlay(!S.playing); $("back").onclick = () => seek(S.
 $("prev").onclick = () => jump(-1); $("next").onclick = () => jump(1);
 $("speed").onchange = () => { if (S.playing) { setPlay(false); setPlay(true); } };
 $("sg").onclick = () => { $("guides").classList.toggle("on"); $("sg").classList.toggle("on"); };
-$("cap").onclick = () => { S.caps = !S.caps; $("cap").classList.toggle("on", S.caps); try { $("f").contentDocument.body.classList.toggle("captions", S.caps); } catch {} };
+$("cap").onclick = () => { S.caps = !S.caps; $("cap").classList.toggle("on", S.caps); try { Studio.frame().contentDocument.body.classList.toggle("captions", S.caps); } catch {} };
 $("daySel").onchange = async () => {
   if (S.pending.size && !confirm("You have unsaved changes on this day. Leave them behind?")) { $("daySel").value = S.day; return; }
   S.pending.clear(); S.day = $("daySel").value; try { localStorage.setItem("studio.day", S.day); } catch {} setPlay(false); S.activity = []; await load(0);
