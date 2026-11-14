@@ -1,286 +1,39 @@
 <!doctype html>
 <html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
 <title>Viridian Studio</title>
-<style>
-:root{--bg:#1b1e26;--panel:#252933;--panel2:#2e333f;--line:#3a4050;--ink:#f1ece2;--mut:#9aa3b5;--acc:#8FD3B6;--coral:#E07A6B;--blue:#7FA8E8;--amber:#E8C66F}
-*{box-sizing:border-box;margin:0;padding:0}
-html,body{height:100%}
-body{background:var(--bg);color:var(--ink);font:14px/1.4 system-ui,-apple-system,Segoe UI,sans-serif;display:grid;grid-template-rows:auto auto 1fr auto;gap:10px;padding:10px 14px;overflow:hidden}
-button,select{background:var(--panel2);color:var(--ink);border:1px solid var(--line);border-radius:9px;padding:6px 11px;font:inherit;cursor:pointer}
-button:hover{background:#3a4050}button.on{background:var(--acc);color:#16231d;border-color:var(--acc)}
-button:disabled{opacity:.45;cursor:default}
-#top{display:flex;align-items:center;gap:10px;flex-wrap:wrap}
-#top h1{font-size:15px;letter-spacing:.4px;margin-right:6px}#top h1 b{color:var(--acc)}
-.sp{flex:1}
-#conn{font-size:12px;color:var(--mut)}#conn i{display:inline-block;width:8px;height:8px;border-radius:50%;background:var(--coral);margin-right:6px}#conn.ok i{background:var(--acc)}
-/* status strip */
-#strip{background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:9px 14px;display:flex;align-items:center;gap:16px;min-height:46px}
-#strip .dot{width:11px;height:11px;border-radius:50%;background:#59627a;flex:none}
-#strip.working .dot{background:var(--acc);box-shadow:0 0 0 0 rgba(143,211,182,.7);animation:pulse 1.6s infinite}
-#strip.error .dot{background:var(--coral)}#strip.done .dot{background:var(--blue)}
-@keyframes pulse{70%{box-shadow:0 0 0 9px rgba(143,211,182,0)}100%{box-shadow:0 0 0 0 rgba(143,211,182,0)}}
-#st-main{min-width:0;flex:1}#st-task{font-weight:650;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-#st-detail{color:var(--mut);font-size:12.5px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-#st-steps{display:flex;gap:6px;flex-wrap:wrap}
-.step{font-size:11.5px;padding:3px 9px;border-radius:99px;background:var(--panel2);color:var(--mut);border:1px solid var(--line)}
-.step.done{color:var(--acc);border-color:#3f6a58}.step.now{background:var(--acc);color:#16231d;border-color:var(--acc);font-weight:650}
-#st-age{color:var(--mut);font-size:12px;white-space:nowrap}
-#flash{color:var(--amber);font-size:12px;white-space:nowrap}
-/* main */
-#main{display:flex;gap:16px;min-height:0}
-#stage{flex:1;min-width:0;display:flex;align-items:center;justify-content:center;background:radial-gradient(#2a2f3b,#181b22);border-radius:14px;border:1px solid var(--line);position:relative}
-#phone{position:relative;border-radius:22px;overflow:hidden;background:#000;box-shadow:0 12px 50px rgba(0,0,0,.55)}
-#phone iframe{position:absolute;left:0;top:0;width:540px;height:960px;border:0;transform-origin:0 0}
-#guides{position:absolute;inset:0;pointer-events:none;display:none}#guides.on{display:block}
-#guides .z{position:absolute;left:0;right:0;background:rgba(224,122,107,.26);border-top:1px dashed #fff;border-bottom:1px dashed #fff}
-#guides span{position:absolute;right:6px;font-size:10px;color:#fff;background:rgba(0,0,0,.5);padding:1px 6px;border-radius:6px}
-#hud{position:absolute;left:14px;top:12px;font-size:12px;color:var(--mut);font-variant-numeric:tabular-nums}
-#msg{position:absolute;left:14px;bottom:12px;right:14px;color:var(--coral);font-size:12px}
-#side{width:min(400px,36vw);flex:none;display:flex;flex-direction:column;background:var(--panel);border:1px solid var(--line);border-radius:14px;min-height:0}
-#tabs{display:flex;gap:2px;padding:8px 8px 0;border-bottom:1px solid var(--line);flex-wrap:wrap}
-#tabs button{border:0;border-radius:9px 9px 0 0;background:transparent;color:var(--mut);padding:7px 11px}
-#tabs button.on{background:var(--panel2);color:var(--ink)}
-#tabs button .soon{font-size:9.5px;color:var(--amber);margin-left:5px;text-transform:uppercase}
-#panel{padding:12px;overflow:auto;flex:1;min-height:0}
-.sc{display:flex;justify-content:space-between;gap:10px;padding:8px 11px;border-radius:10px;background:var(--panel2);cursor:pointer;margin-bottom:6px;border-left:4px solid var(--c,#666)}
-.sc.cur{outline:2px solid var(--acc)}.sc small{color:var(--mut)}
-.kv{color:var(--mut);font-size:12px;margin:10px 0 3px;text-transform:uppercase;letter-spacing:.6px}
-.words{line-height:1.9}.w{padding:1px 3px;border-radius:5px;color:var(--mut)}.w.on{background:var(--acc);color:#16231d}.w.past{color:var(--ink)}
-.log div{padding:5px 0;border-bottom:1px solid var(--line);font-size:12.5px}.log time{color:var(--mut);margin-right:8px;font-size:11.5px}
-.soon-box{color:var(--mut);padding:18px 6px;font-size:13px}.soon-box b{color:var(--ink)}
-pre{white-space:pre-wrap;font:12px/1.5 ui-monospace,monospace;color:#cfd5e2}
-/* transport + timeline */
-#dock{background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:10px 12px}
-#bar{display:flex;gap:8px;align-items:center;margin-bottom:9px;flex-wrap:wrap}
-#play{background:var(--acc);color:#16231d;font-weight:700;min-width:84px;border-color:var(--acc)}
-#time{font-variant-numeric:tabular-nums;color:var(--mut);margin-left:6px}
-#tl{position:relative;height:84px;border-radius:10px;background:#1d2029;overflow:hidden;cursor:ew-resize;touch-action:none;user-select:none}
-#wave{position:absolute;inset:0;width:100%;height:100%;opacity:.55}
-.blk{position:absolute;top:0;bottom:0;border-right:2px solid #1d2029;background:color-mix(in srgb,var(--c) 22%,transparent);padding:5px 7px;overflow:hidden;font-size:11.5px;white-space:nowrap}
-.blk b{display:block;font-size:12px}.blk span{color:var(--mut)}
-.blk.cur{background:color-mix(in srgb,var(--c) 38%,transparent)}
-.blk::before{content:"";position:absolute;left:0;right:0;bottom:0;height:4px;background:var(--c)}
-#head{position:absolute;top:0;bottom:0;width:2px;background:#fff;box-shadow:0 0 8px #fff;pointer-events:none}
-#head::before{content:"";position:absolute;top:0;left:-5px;border:6px solid transparent;border-top-color:#fff}
-#ticks{position:relative;height:16px;font-size:10.5px;color:var(--mut);font-variant-numeric:tabular-nums}
-#ticks span{position:absolute;top:0;transform:translateX(-50%)}
-kbd{background:var(--panel2);border:1px solid var(--line);border-radius:5px;padding:0 5px;font-size:11px}
-@media (max-width:900px){#main{flex-direction:column}#side{width:auto;max-height:36vh}body{overflow:auto;grid-template-rows:none}}
-</style></head><body>
+<link rel="stylesheet" href="studio.css">
+</head><body>
 <div id="top">
-  <h1><b>Viridian</b> Studio</h1>
+  <h1><b>Viridian</b> Studio<small id="ver"></small></h1>
   <label>Day <select id="daySel"></select></label>
   <label>Scene file <select id="sceneSel"></select></label>
   <span class="sp"></span>
-  <span id="flash"></span>
+  <span id="flash"></span><span id="unsaved"></span>
+  <button id="handoff" title="Collect your changes and notes to paste into the chat">Send to Claude</button>
   <span id="conn"><i></i><span>connecting</span></span>
 </div>
 <div id="strip" class="idle"><span class="dot"></span>
   <div id="st-main"><div id="st-task">Nothing in progress</div><div id="st-detail">The strip fills in while a build is running.</div></div>
   <div id="st-steps"></div><div id="st-age"></div></div>
 <div id="main">
-  <div id="stage"><div id="phone"><iframe id="f" title="scene"></iframe>
+  <div id="stage"><div id="phone"><iframe id="f" class="live" title="scene"></iframe><iframe id="f2" title="scene (loading)" aria-hidden="true"></iframe>
     <div id="guides"><div class="z" style="top:0;height:13%"><span>app bar</span></div><div class="z" style="top:81.8%;bottom:0"><span>app buttons</span></div></div></div>
-    <div id="hud"></div><div id="msg"></div></div>
-  <div id="side"><div id="tabs"></div><div id="panel"></div></div>
+    <div id="hud"></div><div id="draftTag">Showing unsaved changes</div><div id="msg"></div></div>
+  <div id="side"><div id="tabs" role="tablist"></div><div id="panel"></div></div>
 </div>
 <div id="dock">
   <div id="bar">
-    <button id="play">Play</button><button id="back">-1s</button><button id="fwd">+1s</button>
+    <button id="play" class="primary">Play</button><button id="back">-1s</button><button id="fwd">+1s</button>
     <button id="prev" title="Previous scene">|◂ Scene</button><button id="next" title="Next scene">Scene ▸|</button>
     <button id="sg">Safe zone</button><button id="cap" class="on">Captions</button>
     <label>Speed <select id="speed"><option>0.5</option><option selected>1</option><option>1.5</option></select></label>
     <span id="time">0.0 / 0.0 s</span><span class="sp"></span>
-    <span style="color:var(--mut);font-size:12px"><kbd>Space</kbd> play <kbd>←</kbd><kbd>→</kbd> 1 s <kbd>[</kbd><kbd>]</kbd> scene <kbd>S</kbd> safe zone <kbd>C</kbd> captions</span>
+    <span class="hint" style="font-size:12px"><kbd>Space</kbd> play <kbd>←</kbd><kbd>→</kbd> 1 s <kbd>[</kbd><kbd>]</kbd> scene <kbd>N</kbd> note <kbd>Ctrl</kbd>+<kbd>S</kbd> save</span>
   </div>
-  <div id="tl"><canvas id="wave"></canvas><div id="blocks"></div><div id="head"></div></div>
+  <div id="tl"><canvas id="wave"></canvas><div id="blocks"></div><div id="marks"></div><div id="head"></div></div>
   <div id="ticks"></div>
 </div>
+<dialog id="dlg"></dialog><div id="toast"></div>
 <audio id="a" preload="auto"></audio><audio id="m" preload="auto"></audio><audio id="x" preload="auto"></audio>
-<script>
-"use strict";
-const $=id=>document.getElementById(id);
-const F=$('f'),A=$('a'),Mu=$('m'),Sx=$('x');
-const MOOD={red:'#E07A6B',blue:'#7FA8E8',green:'#8FD3B6',gold:'#E8C66F'};
-const S={day:null,scene:null,info:null,script:null,timing:null,t:0,playing:false,ready:false,caps:true,clock:0,clockAt:0,hasAudio:false,tab:'scenes',activity:[],wave:null};
-
-/* ---- tiny extension surface: later features (adjust controls, frame notes) plug in here ---- */
-const Studio={
-  panels:[],handlers:{},
-  panel(p){this.panels.push(p)},
-  on(ev,fn){(this.handlers[ev]=this.handlers[ev]||[]).push(fn)},
-  emit(ev,d){(this.handlers[ev]||[]).forEach(fn=>{try{fn(d)}catch(e){console.error(e)}})},
-  state:S, seek:s=>seek(s), api:p=>fetch(p,{cache:'no-store'}).then(r=>r.json())
-};
-window.Studio=Studio;
-
-const fmt=s=>s.toFixed(1);
-const say=m=>$('msg').textContent=m||'';
-const ago=ts=>{if(!ts)return'';const s=Math.max(0,(Date.now()-new Date(ts))/1000);return s<5?'just now':s<60?Math.round(s)+' s ago':s<3600?Math.round(s/60)+' min ago':Math.round(s/3600)+' h ago'};
-const esc=s=>String(s??'').replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
-const moodOf=i=>MOOD[(S.script.scenes[i]||{}).mood]||'#8a93a8';
-function logAct(text){S.activity.unshift({at:new Date().toISOString(),text});S.activity=S.activity.slice(0,60);if(S.tab==='activity')renderPanel()}
-
-/* ---- loading ---- */
-async function loadDays(){
-  const days=await Studio.api('/api/days');
-  $('daySel').innerHTML=days.map(d=>`<option>${d}</option>`).join('');
-  const want=new URLSearchParams(location.search).get('day')||localStorage.getItem('studio.day');
-  S.day=days.includes(want)?want:days[0];$('daySel').value=S.day;
-}
-async function load(keepT){
-  S.ready=false;say('');
-  try{
-    S.info=await Studio.api('/api/day/'+S.day);
-    S.scene=S.scene&&S.info.scenes.includes(S.scene)?S.scene:S.info.defaultScene;
-    $('sceneSel').innerHTML=S.info.scenes.map(s=>`<option>${s}</option>`).join('');$('sceneSel').value=S.scene;
-    const base='/day/'+S.day+'/';
-    [S.script,S.timing]=await Promise.all([fetch(base+'script.json',{cache:'no-store'}).then(r=>r.json()),fetch(base+'timing.json',{cache:'no-store'}).then(r=>r.json())]);
-  }catch(e){say('Waiting for script.json and timing.json ('+e.message+')');return}
-  applyStatus(S.info.status);
-  const fl=S.info.files,v='?v='+(fl['voice.wav']||0);
-  S.hasAudio=!!fl['voice.wav'];
-  if(S.hasAudio){A.src='/day/'+S.day+'/voice.wav'+v;
-    if(fl['music.wav']){Mu.src='/day/'+S.day+'/music.wav?v='+fl['music.wav'];Mu.volume=.22}else Mu.removeAttribute('src');
-    if(fl['sfx.wav']){Sx.src='/day/'+S.day+'/sfx.wav?v='+fl['sfx.wav'];Sx.volume=.9}else Sx.removeAttribute('src')}
-  buildTimeline();renderPanel();loadWave();
-  F.onload=async()=>{try{
-    await F.contentWindow.document.fonts.ready;
-    await new Promise((r,j)=>{let n=0;const i=setInterval(()=>{if(typeof F.contentWindow.init==='function'){clearInterval(i);r()}else if(++n>100){clearInterval(i);j(new Error('scene has no init()'))}},50)});
-    await F.contentWindow.init(S.script,S.timing,{captions:S.caps});S.ready=true;
-    seek(typeof keepT==='number'?keepT:0);Studio.emit('reload',S);
-  }catch(e){say('Scene error: '+e.message)}};
-  F.src='/t/'+S.scene+'?r='+Date.now();
-  layout();
-}
-
-/* ---- status strip ---- */
-let curStatus=null;
-function applyStatus(st){curStatus=st;
-  const el=$('strip');
-  if(!st){el.className='idle';$('st-task').textContent='Nothing in progress';$('st-detail').textContent='The strip fills in while a build is running.';$('st-steps').innerHTML='';$('st-age').textContent='';return}
-  const fresh=(Date.now()-new Date(st.updated))<10*60e3;
-  el.className=st.state==='working'&&!fresh?'idle':st.state||'idle';
-  $('st-task').textContent=st.task||'Working';$('st-detail').textContent=st.detail||'';
-  $('st-steps').innerHTML=(st.steps||[]).map((s,i)=>`<span class="step ${st.at>i+1?'done':st.at===i+1?'now':''}">${esc(s)}</span>`).join('');
-  tickAge();
-  if(st.log){const known=new Set(S.activity.map(a=>a.at));for(const l of st.log.slice(-12))if(!known.has(l.at))S.activity.push({at:l.at,text:l.text});S.activity.sort((a,b)=>b.at<a.at?-1:1)}
-}
-function tickAge(){$('st-age').textContent=curStatus?ago(curStatus.updated):''}
-setInterval(tickAge,2000);
-
-/* ---- timeline ---- */
-function buildTimeline(){
-  const D=S.timing.duration;
-  $('blocks').innerHTML=S.timing.scenes.map((s,i)=>`<div class="blk" data-i="${i}" style="--c:${moodOf(i)};left:${s.t0/D*100}%;width:${(s.t1-s.t0)/D*100}%"><b>${i+1}. ${esc(s.id)}</b><span>${esc((S.script.scenes[i]?.visual?.type)||'')} · ${fmt(s.t1-s.t0)}s</span></div>`).join('');
-  let tk='';const step=D>60?10:5;for(let x=0;x<=D;x+=step)tk+=`<span style="left:${x/D*100}%">${x}s</span>`;$('ticks').innerHTML=tk;
-}
-async function loadWave(){
-  const cv=$('wave'),c=cv.getContext('2d');cv.width=cv.clientWidth*2;cv.height=cv.clientHeight*2;c.clearRect(0,0,cv.width,cv.height);
-  if(!S.hasAudio)return;
-  try{
-    const buf=await (await fetch('/day/'+S.day+'/voice.wav?v='+S.info.files['voice.wav'])).arrayBuffer();
-    const ac=new (window.OfflineAudioContext||window.webkitOfflineAudioContext)(1,1,22050);const au=await ac.decodeAudioData(buf);
-    const d=au.getChannelData(0),W=cv.width,H=cv.height,per=Math.floor(d.length/W);c.fillStyle='#cfd5e2';
-    for(let x=0;x<W;x+=2){let mx=0;for(let k=0;k<per;k+=8)mx=Math.max(mx,Math.abs(d[x*per+k]||0));const h=Math.min(1,mx*1.6)*H*.5;c.fillRect(x,H/2-h/2,1.4,Math.max(1,h))}
-  }catch(e){}
-}
-function tlSeek(ev){const r=$('tl').getBoundingClientRect();seek((ev.clientX-r.left)/r.width*S.timing.duration)}
-let drag=false;
-$('tl').addEventListener('pointerdown',e=>{drag=true;$('tl').setPointerCapture(e.pointerId);tlSeek(e)});
-$('tl').addEventListener('pointermove',e=>{if(drag)tlSeek(e)});
-$('tl').addEventListener('pointerup',()=>drag=false);
-
-/* ---- panels ---- */
-Studio.panel({id:'scenes',title:'Scenes',render(){return S.timing.scenes.map((s,i)=>`<div class="sc" data-t="${(s.t0+.3).toFixed(2)}" data-i="${i}" style="--c:${moodOf(i)}"><span>${i+1}. ${esc(s.id)}</span><small>${s.t0.toFixed(1)}s</small></div>`).join('')},
-  bind(root){root.querySelectorAll('.sc').forEach(el=>el.onclick=()=>seek(Number(el.dataset.t)))}});
-Studio.panel({id:'script',title:'Script',render(){
-  const i=curScene();if(i<0)return'<div class="soon-box">Press play or pick a scene.</div>';
-  const sc=S.script.scenes[i],tm=S.timing.scenes[i];
-  return `<div class="kv">Scene ${i+1} · ${esc(sc.id)} · ${esc(sc.visual?.type||'')}</div><div class="words" id="words">${(tm.words||[]).map((w,k)=>`<span class="w" data-k="${k}" data-t="${w.t0}">${esc(w.w)}</span> `).join('')}</div>
-   <div class="kv">Narration text</div><div>${esc(sc.text||'')}</div>
-   <div class="kv">Scene data</div><pre>${esc(JSON.stringify(sc.visual,(k,v)=>Array.isArray(v)&&v.length>8?`[${v.length} values]`:v,1))}</pre>`},
-  bind(root){root.querySelectorAll('.w').forEach(el=>el.onclick=()=>seek(Number(el.dataset.t)))}});
-Studio.panel({id:'activity',title:'Activity',render(){return '<div class="log">'+(S.activity.length?S.activity.map(a=>`<div><time>${ago(a.at)}</time>${esc(a.text)}</div>`).join(''):'<div style="color:var(--mut)">Changes to files and status updates show up here.</div>')+'</div>'}});
-Studio.panel({id:'adjust',title:'Adjust',soon:'next',render(){return '<div class="soon-box"><b>Adjust it yourself</b> comes next: change a number, a line or a colour here and see it in the player at once. It plugs into this panel and writes to script.json.</div>'}});
-Studio.panel({id:'notes',title:'Notes',soon:'later',render(){return '<div class="soon-box"><b>Frame notes</b> come after that: pause on any frame, leave a note, and it is saved with the time and scene to notes.json.</div>'}});
-function renderTabs(){
-  $('tabs').innerHTML=Studio.panels.map(p=>`<button data-id="${p.id}" class="${S.tab===p.id?'on':''}">${p.title}${p.soon?`<span class="soon">${p.soon}</span>`:''}</button>`).join('');
-  $('tabs').querySelectorAll('button').forEach(b=>b.onclick=()=>{S.tab=b.dataset.id;renderTabs();renderPanel()});
-}
-function renderPanel(){if(!S.timing)return;const p=Studio.panels.find(x=>x.id===S.tab);$('panel').innerHTML=p.render();p.bind&&p.bind($('panel'));lastCur=-2;updateCur()}
-
-/* ---- playback ---- */
-const curScene=()=>S.timing?S.timing.scenes.findIndex(s=>S.t>=s.t0-.05&&S.t<s.t1-.05):-1;
-let lastCur=-2;
-function updateCur(){
-  const i=curScene();
-  if(i!==lastCur){lastCur=i;
-    document.querySelectorAll('.blk').forEach(el=>el.classList.toggle('cur',Number(el.dataset.i)===i));
-    document.querySelectorAll('.sc').forEach(el=>el.classList.toggle('cur',Number(el.dataset.i)===i));
-    if(S.tab==='script'){const p=Studio.panels.find(x=>x.id==='script');$('panel').innerHTML=p.render();p.bind($('panel'))}
-    const cs=document.querySelector('.sc.cur');cs&&cs.scrollIntoView({block:'nearest'});
-    Studio.emit('scene',i)}
-  if(S.tab==='script'&&i>=0)document.querySelectorAll('.w').forEach(el=>{const k=Number(el.dataset.k),w=S.timing.scenes[i].words[k];el.className='w'+(S.t>=w.t0&&S.t<w.t1+.05?' on':S.t>=w.t1?' past':'')});
-}
-function draw(){
-  if(!S.ready)return;
-  try{F.contentWindow.render(S.t)}catch(e){say('Render error: '+e.message);return}
-  const D=S.timing.duration;
-  $('head').style.left=(S.t/D*100)+'%';$('time').textContent=fmt(S.t)+' / '+fmt(D)+' s';
-  $('hud').textContent=curScene()>=0?`scene ${curScene()+1}/${S.timing.scenes.length} · ${S.timing.scenes[curScene()].id}`:'';
-  updateCur();Studio.emit('time',S.t);
-}
-function seek(s){S.t=Math.max(0,Math.min(S.timing.duration,s));
-  if(S.hasAudio){try{A.currentTime=S.t;if(Mu.src)Mu.currentTime=S.t;if(Sx.src)Sx.currentTime=S.t}catch(e){}}
-  S.clock=S.t;S.clockAt=performance.now();draw()}
-function setPlay(p){S.playing=p;$('play').textContent=p?'Pause':'Play';
-  const r=Number($('speed').value);[A,Mu,Sx].forEach(a=>a.playbackRate=r);
-  if(p){S.clock=S.t;S.clockAt=performance.now();
-    if(S.hasAudio){[[A,1],[Mu,Mu.src],[Sx,Sx.src]].forEach(([a,ok])=>{if(ok){a.currentTime=S.t;a.play().catch(()=>{})}})}}
-  else[A,Mu,Sx].forEach(a=>a.pause())}
-function loop(){
-  if(S.playing&&S.ready){const r=Number($('speed').value);
-    S.t=(S.hasAudio&&!A.paused&&A.readyState>2)?A.currentTime:S.clock+(performance.now()-S.clockAt)/1000*r;
-    if(S.t>=S.timing.duration){S.t=S.timing.duration;setPlay(false)}draw()}
-  requestAnimationFrame(loop)}
-const jump=d=>{const i=Math.max(0,Math.min(S.timing.scenes.length-1,(curScene()<0?0:curScene())+d));seek(S.timing.scenes[i].t0+.3)};
-
-/* ---- layout: fit the 540x960 scene to the stage ---- */
-function layout(){
-  const st=$('stage'),h=st.clientHeight-28,w=st.clientWidth-28;
-  const k=Math.min(h/960,w/540);const ph=$('phone');ph.style.width=540*k+'px';ph.style.height=960*k+'px';F.style.transform=`scale(${k})`;
-}
-new ResizeObserver(layout).observe($('stage'));addEventListener('resize',()=>{layout();loadWave()});
-
-/* ---- live updates ---- */
-let es,flashT;
-function connect(){
-  es=new EventSource('/events');
-  es.onopen=()=>{$('conn').className='ok';$('conn').lastChild.textContent='live'};
-  es.onerror=()=>{$('conn').className='';$('conn').lastChild.textContent='reconnecting…'};
-  es.onmessage=async ev=>{const m=JSON.parse(ev.data);if(m.type!=='change')return;
-    const mine=m.changes.filter(c=>c.scope==='scene'||c.day===S.day);if(!mine.length)return;
-    const names=[...new Set(mine.map(c=>c.file))];
-    const onlyStatus=names.every(n=>n==='status.json'||n==='notes.json');
-    const real=names.filter(n=>n!=='status.json');
-    for(const n of real)logAct(n+' changed');
-    if(real.length){$('flash').textContent='Updated '+real.join(', ');clearTimeout(flashT);flashT=setTimeout(()=>{$('flash').textContent=''},4000)}
-    if(onlyStatus){S.info=await Studio.api('/api/day/'+S.day);applyStatus(S.info.status);return}
-    const keep=S.t,was=S.playing;setPlay(false);await load(keep);if(was)setTimeout(()=>setPlay(true),300);
-  };
-}
-
-/* ---- wiring ---- */
-$('play').onclick=()=>setPlay(!S.playing);$('back').onclick=()=>seek(S.t-1);$('fwd').onclick=()=>seek(S.t+1);
-$('prev').onclick=()=>jump(-1);$('next').onclick=()=>jump(1);
-$('speed').onchange=()=>{if(S.playing){setPlay(false);setPlay(true)}};
-$('sg').onclick=()=>{$('guides').classList.toggle('on');$('sg').classList.toggle('on')};
-$('cap').onclick=()=>{S.caps=!S.caps;$('cap').classList.toggle('on',S.caps);try{F.contentDocument.body.classList.toggle('captions',S.caps)}catch(e){}};
-$('daySel').onchange=()=>{S.day=$('daySel').value;localStorage.setItem('studio.day',S.day);setPlay(false);S.activity=[];load()};
-$('sceneSel').onchange=()=>{S.scene=$('sceneSel').value;load(S.t)};
-addEventListener('keydown',e=>{if(['SELECT','INPUT','TEXTAREA'].includes(e.target.tagName))return;
-  if(e.code==='Space'){e.preventDefault();setPlay(!S.playing)}else if(e.key==='ArrowLeft')seek(S.t-1);else if(e.key==='ArrowRight')seek(S.t+1);
-  else if(e.key==='[')jump(-1);else if(e.key===']')jump(1);else if(e.key==='s'||e.key==='S')$('sg').click();else if(e.key==='c'||e.key==='C')$('cap').click()});
-(async()=>{renderTabs();await loadDays();await load();connect();loop()})();
-</script></body></html>
+<script type="module" src="js/main.js"></script>
+</body></html>

@@ -4,3 +4,7 @@ __pycache__/
 still_*.png
 _video_*.mp4
 template/_vbg/
+
+# Studio working files (history, baseline) and the live status file
+.studio/
+status.json
