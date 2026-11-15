@@ -4,9 +4,9 @@ import { seek, setPlay } from "../player.js";
 
 let draftText = "";
 const open = () => S.notes.filter(n => !n.done).length;
-async function refresh() { try { S.notes = (await Studio.api(Studio.dayApi("notes"))).notes; } catch { S.notes = []; } pins(); Studio.emit("notes"); }
+async function refresh() { try { S.notes = await Studio.backend.notes(S.day); } catch { S.notes = []; } pins(); Studio.emit("notes"); }
 function pins() { Studio.setMarkers("notes", S.notes.map(n => ({ t: n.t, cls: n.done ? "done" : "", title: clock(n.t) + "  " + n.text, onClick: () => Studio.showTab("notes") }))); }
-async function act(action, note) { try { S.notes = (await Studio.post(Studio.dayApi("notes"), { action, note })).notes; pins(); Studio.emit("notes"); return true; } catch (e) { Studio.toast(e.message, true); return false; } }
+async function act(action, note) { try { S.notes = await Studio.backend.changeNote(S.day, action, note); pins(); Studio.emit("notes"); return true; } catch (e) { Studio.toast(e.message, true); return false; } }
 
 function render() {
   const i = curScene(), where = `${clock(S.t)}${i >= 0 ? ` · scene ${i + 1} (${esc(S.timing.scenes[i].id)})` : ""}`;

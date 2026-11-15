@@ -8,6 +8,7 @@ import "./panels/adjust.js";
 import "./panels/notes.js";
 import "./handoff.js";
 import { connect } from "./live.js";
+import { pickBackend } from "./backend.js";
 
 // ---- tabs ----
 const ORDER = ["scenes", "adjust", "notes", "script", "activity"];   // tabs not listed here go last, in the order they registered
@@ -37,7 +38,7 @@ $("sg").onclick = () => { $("guides").classList.toggle("on"); $("sg").classList.
 $("cap").onclick = () => { S.caps = !S.caps; $("cap").classList.toggle("on", S.caps); try { Studio.frame().contentDocument.body.classList.toggle("captions", S.caps); } catch {} };
 $("daySel").onchange = async () => {
   if (S.pending.size && !confirm("You have unsaved changes on this day. Leave them behind?")) { $("daySel").value = S.day; return; }
-  S.pending.clear(); S.day = $("daySel").value; try { localStorage.setItem("studio.day", S.day); } catch {} setPlay(false); S.activity = []; await load(0);
+  S.pending.clear(); S.day = $("daySel").value; try { localStorage.setItem("studio.day", S.day); } catch {} setPlay(false); S.activity = []; await load(0); connect();
 };
 $("sceneSel").onchange = () => { S.scene = $("sceneSel").value; reinit(); };
 addEventListener("keydown", e => {
@@ -56,7 +57,9 @@ addEventListener("beforeunload", e => { if (S.pending.size) { e.preventDefault()
   try { const t = localStorage.getItem("studio.tab"); if (t && panelOf(t)) S.tab = t; } catch {}
   Studio.renderTabs();
   try {
-    const { days, default: dflt } = await Studio.api("/api/days");
+    Studio.backend = await pickBackend();
+    document.title = "Viridian Studio";
+    const { days, default: dflt } = await Studio.backend.days();
     if (!days.length) { $("msg").textContent = "No days found. Put a day folder with script.json under examples/ or days/."; return; }
     $("daySel").innerHTML = days.map(d => `<option>${d}</option>`).join("");
     let want = new URLSearchParams(location.search).get("day"); try { want = want || localStorage.getItem("studio.day"); } catch {}

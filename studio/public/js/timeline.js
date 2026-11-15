@@ -27,7 +27,7 @@ async function wave() {
   cv.width = cv.clientWidth * 2; cv.height = cv.clientHeight * 2; c.clearRect(0, 0, cv.width, cv.height);
   if (!S.hasAudio) return;
   try {
-    const buf = await (await fetch(Studio.dayFile("voice.wav") + "?v=" + S.info.files["voice.wav"])).arrayBuffer();
+    const buf = await (await fetch(Studio.backend.fileUrl(S.day, "voice.wav") + "?v=" + S.info.files["voice.wav"])).arrayBuffer();
     const AC = window.OfflineAudioContext || window.webkitOfflineAudioContext; const au = await new AC(1, 1, 22050).decodeAudioData(buf);
     if (key !== waveKey) return;
     const d = au.getChannelData(0), W = cv.width, H = cv.height, per = Math.floor(d.length / W); c.fillStyle = "#cfd5e2";
