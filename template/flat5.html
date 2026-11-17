@@ -6,6 +6,8 @@
 flat5.html: the standing daily look from Nov 14 2026 (Vince: "merge this graphic style with all future daily videos").
 It is the look of the 30-second ad (demos/ad-fable): one three.js world on the cream background, real charts as 3D ribbons,
 sector bars on the ground, headline cards, the V coin end card, one camera that travels from scene to scene with motion blur.
+RETENTION MODE (Nov 17 2026, on by default, see ENGINE.md 'First-seconds retention rules'): colour wash behind the hook number, hook text from frame 1, a camera beat every ~1.75 s,
+captions on by default with key words highlighted, search-style pills, 'follow for tomorrow's close' button and a final frame that loops into frame 1.
 Same contract as flat4: window.init(script, timing, {captions}) then window.render(t). Same script.json, no new required fields.
 Render with render3d.mjs (render.mjs hands 3D pages over to it).
 
@@ -27,10 +29,13 @@ canvas{position:absolute;left:0;top:0;width:540px;height:960px}
 .pills span{font-weight:800;font-size:11px;letter-spacing:2px;padding:7px 13px;border-radius:15px;background:#FFFDF8;color:#5B6782;box-shadow:0 3px 8px rgba(62,74,99,.12);white-space:nowrap}
 .pills .a{background:#E07A6B;color:#fff}.pills .g{background:#2F8A66;color:#fff}.pills span:empty{display:none}
 #hdr,#hkPills{top:126px}
+#pop{position:absolute;inset:0;pointer-events:none;opacity:0}
+#hkSub{left:90px!important;width:360px!important;line-height:1.02;color:#2B3550;text-shadow:0 0 5px #F4ECDF,0 0 10px #F4ECDF,0 0 16px #F4ECDF}
+#hkSub.dn em{font-style:normal;color:#C45A4B}#hkSub.up em{font-style:normal;color:#2F8A66}
 #hkNum{top:152px;font-weight:900;font-size:122px;letter-spacing:-6px;line-height:1}
 #hkNum i{font-style:normal;font-size:70px;letter-spacing:0;vertical-align:14px;margin-right:10px}
 #hkNum.dn{color:#C45A4B;text-shadow:0 6px 0 rgba(196,90,75,.14)}#hkNum.up{color:#2F8A66;text-shadow:0 6px 0 rgba(47,138,102,.14)}
-#hkSub{top:282px;font-weight:900;font-size:31px;letter-spacing:.5px}
+#hkSub{top:280px;font-weight:900;font-size:36px;letter-spacing:.2px;text-transform:uppercase}
 .tchip{font-weight:800;font-size:12px;letter-spacing:1px;padding:5px 10px;border-radius:12px;background:#3E4A63;color:#FFFDF8;white-space:nowrap;box-shadow:0 4px 10px rgba(62,74,99,.25);left:0;top:0}
 .tag{font-weight:900;font-size:11px;letter-spacing:1px;padding:5px 10px;border-radius:12px;color:#fff;white-space:nowrap;left:0;top:0;box-shadow:0 3px 8px rgba(62,74,99,.2)}
 .ft{top:164px;font-weight:900;font-size:44px;letter-spacing:-1.3px;line-height:1.05;padding:0 26px}
@@ -49,32 +54,31 @@ canvas{position:absolute;left:0;top:0;width:540px;height:960px}
 #nums .row.sm .v{font-size:21px}#nums .row.sm .l{font-size:8.5px;letter-spacing:1px}#nums .row.sm .nc{padding:8px 6px 9px}
 #cap{left:0;width:540px;top:728px;text-align:center;font-weight:800;font-size:23px;white-space:nowrap;display:none;opacity:1!important}
 #cap span{display:inline-block;margin:0 3.5px;color:#C9BFAF}#cap span.done{color:#3E4A63}#cap span.on{color:#E07A6B}
+#cap span.k{border-radius:9px;padding:0 6px;margin:0 2px}#cap span.k.on,#cap span.k.done{color:#fff;background:#E07A6B}#cap.up span.k.on,#cap.up span.k.done{background:#2F8A66}
 body.captions #cap{display:block}
-#flash{inset:0;background:#FFFDF8}
 #enBrand{top:118px;font-weight:900;font-size:27px;letter-spacing:12px;text-indent:12px}
 #enSub{top:156px}
 #en1{top:548px;font-weight:900;font-size:32px}
 #en2{top:582px;font-weight:900;font-size:55px;letter-spacing:-1.6px;color:#E07A6B}
 #enBtn{top:666px}
-#enBtn span{display:inline-block;font-weight:900;font-size:17px;letter-spacing:6px;text-indent:6px;padding:14px 46px;border-radius:30px;background:#E07A6B;color:#fff;box-shadow:0 10px 22px rgba(224,122,107,.4)}
+#enBtn span{display:inline-block;font-weight:900;font-size:15px;letter-spacing:2.5px;text-indent:2.5px;padding:15px 30px;border-radius:30px;background:#E07A6B;color:#fff;box-shadow:0 10px 22px rgba(224,122,107,.4)}
 #enDis{top:726px;font-weight:600;font-family:Inter,sans-serif;font-size:11.5px;color:#8691A8}
 body.captions #enDis{top:762px}
 </style></head>
 <body><div id="stage">
-<canvas id="gl"></canvas><canvas id="acc" width="1080" height="1920"></canvas>
+<div id="pop"></div><canvas id="gl"></canvas><canvas id="acc" width="1080" height="1920"></canvas>
 <div id="ui">
- <div id="hkPills" class="c pills"><span class="a">MARKET CLOSE</span><span id="hkL"></span><span id="hkD"></span></div>
+ <div id="hkPills" class="c pills"><span class="a" id="hkT">STOCK MARKET TODAY</span><span id="hkL"></span></div>
  <div id="hkNum" class="c"></div>
  <div id="hkSub" class="c"></div>
- <div id="hdr" class="c pills"><span class="a">MARKET CLOSE</span><span id="hdrD"></span><span id="hdrK"></span></div>
+ <div id="hdr" class="c pills"><span class="a" id="hdrT">STOCK MARKET TODAY</span><span id="hdrD"></span><span id="hdrK"></span></div>
  <div id="nums"></div>
  <div id="cap"></div>
- <div id="flash"></div>
  <div id="enBrand" class="c">VIRIDIAN</div>
  <div id="enSub" class="c pills"><span class="g">DAILY WALL STREET RECAP</span></div>
  <div id="en1" class="c"><span class="w">Stay </span><span class="w">with </span><span class="w">us </span><span class="w">for </span><span class="w">the</span></div>
  <div id="en2" class="c"><span class="w">next </span><span class="w">market </span><span class="w">close</span></div>
- <div id="enBtn" class="c"><span>FOLLOW</span></div>
+ <div id="enBtn" class="c"><span>FOLLOW FOR TOMORROW'S CLOSE</span></div>
  <div id="enDis" class="c">Entertainment only. Not financial advice.</div>
 </div></div>
 <script type="importmap">{"imports":{"three":"./vendor/three/build/three.module.js","three/addons/":"./vendor/three/examples/jsm/"}}</script>
@@ -210,7 +214,7 @@ const camFront=(X,f,dx=.75)=>({a:[[X-dx,f.ly+.5,f.d],[X,f.ly,0]],b:[[X+dx*.8,f.l
 const B={};
 // Opener: hook number over the day's real chart (any story-art type from flat4 lands here)
 B.opener=(v,sc,s,X,g,i)=>{
-  const h=i===0?S.hook:null,src=h?pickSeries(h):null,f=fit(2.85,.55,352,628),o={cam:camFront(X,f,.6)};
+  const h=i===0?S.hook:null,src=h?pickSeries(h):null,f=fit(2.85,.55,(h&&(h.text||h.sub))?384:352,628),o={cam:camFront(X,f,.6)};
   if(i===0)o.cam.start=[[X-1.5,f.ly+.9,f.d-2.8],[X-.3,f.ly+.12,0]];
   let ch=null,chip=null;const dur=Math.min(2.7,Math.max(1.2,sc.t1-sc.t0-1));
   if(src){const last=(src.pts.at(-1)/src.base-1)*100;
@@ -219,15 +223,15 @@ B.opener=(v,sc,s,X,g,i)=>{
     const base=new THREE.Mesh(new THREE.BoxGeometry(4.3,.03,.34),matte(P.cream3));base.position.set(0,.015,0);base.receiveShadow=true;g.add(base);
     if(src.pts.length>=60&&!src.timeLabels)chip=dom('tchip');
   } else {const c=makeCoin();c.castOff();g.add(c.g);o.coin=c}
-  if(h){const up=h.delta>=0;$('hkL').textContent=h.label||'';$('hkD').textContent=S.dateLabel||'';$('hkNum').className='c '+(up?'up':'dn');
+  if(h){const up=h.delta>=0;$('hkL').textContent=h.label?(/TODAY/i.test(h.label)?h.label:h.label+' TODAY'):'';$('hkNum').className='c '+(up?'up':'dn');
     $('hkNum').innerHTML=`<i>${up?'▲':'▼'}</i>${h.approx?'~':''}${Math.abs(h.delta).toFixed(h.ddec??1)}%`;
-    if(h.sub)$('hkSub').innerHTML=String(h.sub).split(' ').map(w=>`<span class="w">${esc(w)} </span>`).join('')}
+    const ht=h.text||h.sub;if(ht){$('hkSub').className='c '+(up?'up':'dn');$('hkSub').innerHTML=String(ht).split(' ').map(w=>(w.startsWith('*')?`<span class="w"><em>${esc(w.slice(1))}</em> </span>`:`<span class="w">${esc(w)} </span>`)).join('')}}
   else o.title=s.headline||v.big||v.name||v.headline||v.title||s.tag;
   o.upd=t=>{const out=1-eo(pr(t,sc.t1-.45,sc.t1-.15));
     if(ch){ch.upd(t);const rb=ch.rbs[0];if(chip){const [sx,sy]=proj(X+rb.hp.x,rb.hp.y,rb.hp.z);chip.textContent=fmtTime(eio(pr(t,sc.t0-.25,sc.t0-.25+dur)));show(chip,pr(t,sc.t0+.05,sc.t0+.2)*out,`translate(${Math.min(sx+13,W-92)}px,${sy-34}px)`)}}
     if(o.coin){const a=pr(t,sc.t0-.2,sc.t0+1),bt=t-sc.t0;o.coin.g.position.set(0,lerp(-1.5,2.2,back(a,1.1))+Math.sin(bt*1.5)*.05,1);o.coin.g.scale.setScalar(.9*back(pr(t,sc.t0-.2,sc.t0+.7),1.6)||.0001);o.coin.g.rotation.y=(1-eo5(a))*Math.PI*4+Math.sin(bt*.85)*.3}
     if(h){show($('hkPills'),out,`translateY(${-10*(1-out)}px)`);const k=eo5(pr(t,0,.45)),hit=Math.exp(-pr(t,sc.t0-.25+dur,sc.t0+dur+.45)*6)*(t>=sc.t0-.25+dur?1:0);
-      show($('hkNum'),out,`translateY(${-12*(1-out)}px) scale(${1.2-.2*k+.05*hit})`);if(h.sub)words($('hkSub'),t,sc.t0+1.2,sc.t1-.5,{step:.22,dy:20})}};
+      show($('hkNum'),out,`translateY(${-12*(1-out)}px) scale(${1.2-.2*k+.05*hit})`);if(h.text||h.sub)words($('hkSub'),t,.04,sc.t1-.5,{step:.09,dy:18})}};
   o.off=()=>{if(chip)show(chip,0);if(h){show($('hkPills'),0);show($('hkNum'),0);show($('hkSub'),0)}};
   return o};
 function pickSeries(h){const cands=[];S.scenes.forEach((s,i)=>{const v=s.visual||{},sc=T.scenes[i];
@@ -311,7 +315,7 @@ B.end=(v,sc,s,X,g)=>{const c=makeCoin();g.add(c.g);const T0=sc.t0,cy=2.93;
       words($('en1'),t,tStay,1e9,{step:.17});words($('en2'),t,tStay+.85,1e9,{step:.3,dy:36});
       const fb=back(pr(t,T0+.95,T0+1.35),2),on=t>=tTap,tap=on?Math.exp(-pr(t,tTap,tTap+.6)*5):0,pulse=t>T0+1.4?1+.035*Math.sin((t-T0-1.4)*5.2):1;
       show($('enBtn'),pr(t,T0+.95,T0+1.1),`scale(${(.5+.5*fb)*pulse*(1-.1*tap)})`);const b=$('enBtn').firstChild;
-      b.textContent=on?'FOLLOWING ✓':'FOLLOW';b.style.background=on?P.green:P.coral2;b.style.boxShadow=on?'0 10px 22px rgba(47,138,102,.4)':'0 10px 22px rgba(224,122,107,.4)';
+      b.textContent=on?'FOLLOWING ✓':(S.followText||"FOLLOW FOR TOMORROW'S CLOSE");b.style.background=on?P.green:P.coral2;b.style.boxShadow=on?'0 10px 22px rgba(47,138,102,.4)':'0 10px 22px rgba(224,122,107,.4)';
       show($('enDis'),pr(t,T0+1.3,T0+1.8))},
     off:()=>['enBrand','enSub','en1','en2','enBtn','enDis'].forEach(k=>show($(k),0))}};
 
@@ -333,21 +337,24 @@ function drawNums(t){let tag='',op=0;NC.forEach(g=>{const vis=t>=g.sc.t0-.1&&t<=
     else it.v.textContent=(c.delta>=0?'▲ ':'▼ ')+(c.approx?'~':'')+Math.abs(c.delta*cnt).toFixed(c.ddec??2)+'%'})});
   const h=$('hdr');if(tag){$('hdrK').textContent=tag;show(h,op,`translateY(${(1-op)*-12}px)`)}else show(h,0)}
 let CH=[],lastCh=null,capOff=1e9;
-function buildChunks(){for(const sc of T.scenes){let cur=[];sc.words.forEach((w,i)=>{cur.push(w);const len=cur.map(x=>x.w).join(' ').length;if(/[.,:;!?]$/.test(w.w)||cur.length>=3||len>=17||i===sc.words.length-1){CH.push(cur);cur=[]}})}}
+const KEYS=new Set();
+function buildKeys(){const add=x=>x&&KEYS.add(String(x).toLowerCase());(S.keywords||[]).forEach(add);S.scenes.forEach(s=>(s.callouts||[]).forEach(c=>add(c.at)));(S.ticker||[]).forEach(r=>String(r[0]).split(' ')[0].length>1&&add(String(r[0]).split(' ')[0]))}
+const isKey=w=>{const x=w.replace(/[^\w&%.]/g,'').toLowerCase();return !!x&&(/\d/.test(x)||x==='percent'||[...KEYS].some(k=>k.length>1&&x.startsWith(k.replace(/[^\w&%.]/g,''))))};
+function buildChunks(){buildKeys();for(const sc of T.scenes){let cur=[];sc.words.forEach((w,i)=>{cur.push(w);const len=cur.map(x=>x.w).join(' ').length;if(/[.,:;!?]$/.test(w.w)||cur.length>=3||len>=17||i===sc.words.length-1){CH.push(cur);cur=[]}})}}
 function drawCap(t){const cap=$('cap');let ch=null;for(const c of CH)if(t>=c[0].t0-.05)ch=c;
   if(!ch||t>ch[ch.length-1].t1+.6||t>=capOff-.05){if(lastCh){cap.innerHTML='';lastCh=null}return}
-  if(lastCh!==ch){cap.innerHTML=ch.map(w=>`<span>${esc(w.w)}</span>`).join('');lastCh=ch}
-  [...cap.children].forEach((s,i)=>{const w=ch[i];s.className=t>=w.t1?'done':(t>=w.t0?'on':'')})}
+  if(lastCh!==ch){cap.innerHTML=ch.map(w=>`<span${isKey(w.w)?' class="k"':''}>${esc(w.w)}</span>`).join('');cap.className=S.hook&&S.hook.delta>=0?'up':'';lastCh=ch}
+  [...cap.children].forEach((s,i)=>{const w=ch[i];s.className=(t>=w.t1?'done':(t>=w.t0?'on':''))+(isKey(w.w)?' k':'')})}
 
 // ---------- camera: one move per scene, arriving on the scene start ----------
-let K=[];
+let K=[],RET=true;const BEAT=1.75;
 const v3=a=>new THREE.Vector3(...a);
 function buildCam(){SC.forEach((o,i)=>{const {t0,t1}=o.sc,c=o.cam;
     if(i===0){K.push([0,...(c.start||c.a)]);if(c.start)K.push([Math.min(2.7,t1*.6),...c.a,eio])}
     else K.push([t0+.25,...c.a,eio]);
     K.push([Math.max(K.at(-1)[0]+.1,(i===SC.length-1?DUR+.3:t1-.25)),...c.b,i===SC.length-1?eo:x=>x])})}
 function camAt(t){let i=0;while(i<K.length-2&&t>=K[i+1][0])i++;const a=K[i],b=K[i+1],k=(b[3]||(x=>x))(pr(t,a[0],b[0]));
-  const p=v3(a[1]).lerp(v3(b[1]),k),l=v3(a[2]).lerp(v3(b[2]),k);p.x+=noise(t,1)*.012;p.y+=noise(t*1.2,7)*.012;return {p,l}}
+  const p=v3(a[1]).lerp(v3(b[1]),k),l=v3(a[2]).lerp(v3(b[2]),k);p.x+=noise(t,1)*.03;p.y+=noise(t*1.2,7)*.03;if(RET){const ph=(((t-.25)%BEAT)+BEAT)%BEAT,pu=t>.2?Math.exp(-ph*5.5)*(1-Math.exp(-ph*60)):0,d=p.clone().sub(l);p.addScaledVector(d,-.045*pu)}return {p,l}}
 function setCam(t){const {p,l}=camAt(t);cam.position.copy(p);cam.lookAt(l);cam.updateMatrixWorld();
   sun.position.set(p.x+4.5,11,7.5);sun.target.position.set(p.x,0,0);sun.target.updateMatrixWorld();ground.position.x=p.x}
 
@@ -358,7 +365,15 @@ function update(t){
   SC.forEach(o=>{const {t0,t1}=o.sc,on=t>t0-.7&&t<t1+.7||(o.last&&t>=t0-.7);o.g.visible=on;
     if(on){o.upd(t);o.was=true}else if(o.was){o.was=false;if(o.off)o.off()}
     if(o.tEl)words(o.tEl,t,t0+.05,t1-.4)});
-  drawNums(t);drawCap(t)}
+  drawNums(t);drawCap(t);if(RET)retention(t)}
+// colour wash behind the hook number: full strength on frame 1, settles to a tint, thumps with the beat, and rises again for the looping final frame
+function retention(t){const lp=S.loop===false?0:eo(pr(t,DUR-.95,DUR-.2)),ph=(((t-.25)%BEAT)+BEAT)%BEAT,beat=t>.2?Math.exp(-ph*6):0;
+  const base=lerp(1,.2,eo(pr(t,.2,2.8)));$('pop').style.opacity=Math.min(1,Math.max(base,lp)+.12*beat*(1-lp));
+  $('gl').style.opacity=$('acc').style.opacity=1-lp;if(!lp||!S.hook)return;
+  ['hkPills','hkNum','hkSub'].forEach(k=>{const e=$(k);e.style.opacity=lp;e.style.transform=k==='hkNum'?'scale(1.2)':'none'});
+  document.querySelectorAll('#hkSub .w').forEach(w=>{w.style.opacity=1;w.style.transform='none'});
+  ['enBrand','enSub','en1','en2','enBtn'].forEach(k=>{$(k).style.opacity=0});$('hdr').style.opacity=0;
+  const c=$('cap');if(c)c.innerHTML='';lastCh=null}
 
 // ---------- render, with motion blur on the fast camera moves ----------
 const acc=$('acc'),actx=acc.getContext('2d'),tmp=document.createElement('canvas');tmp.width=1080;tmp.height=1920;const tctx=tmp.getContext('2d');
@@ -373,7 +388,9 @@ window.render=(t,blur=true)=>{
       actx.globalCompositeOperation='copy';actx.globalAlpha=k/(k+1);actx.drawImage(acc,0,0);actx.globalCompositeOperation='lighter';actx.globalAlpha=1/(k+1);actx.drawImage(tmp,0,0);actx.globalCompositeOperation='source-over';actx.globalAlpha=1}}
   update(t);acc.style.display='block'};
 window.init=async(script,timing,opts={})=>{
-  S=script;T=timing;DUR=T.duration||T.scenes.at(-1).t1;if(opts.captions)document.body.classList.add('captions');
+  S=script;T=timing;DUR=T.duration||T.scenes.at(-1).t1;RET=S.retention!==false;if(opts.captions!==false&&S.captions!==false)document.body.classList.add('captions');
+  {const up=S.hook&&S.hook.delta>=0,c=up?'47,138,102':'224,122,107';$('hkT').textContent=$('hdrT').textContent=S.searchTag||'STOCK MARKET TODAY';
+   $('pop').style.background=`radial-gradient(95% 42% at 50% 27%,rgba(${c},.62) 0%,rgba(${c},.18) 62%,rgba(${c},0) 100%),linear-gradient(180deg,rgba(${c},.30) 0%,rgba(${c},0) 52%)`}
   await Promise.all(['600','700','800','900'].map(w=>document.fonts.load(`${w} 20px Montserrat`,'Aa1%')));await document.fonts.ready;
   logoTex=await new THREE.TextureLoader().loadAsync('assets/vc-logo.png');logoTex.colorSpace=THREE.SRGBColorSpace;logoTex.anisotropy=8;
   buildBackdrop((S.scenes.length-1)*GAP);

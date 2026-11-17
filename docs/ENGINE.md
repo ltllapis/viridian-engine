@@ -44,6 +44,18 @@ Vince picked the look of the 30-second ad for every daily video. `flat5.html` is
 - Render: `node template/render.mjs <day> --captions` (it hands 3D pages to `render3d.mjs`, which uses software WebGL). `qa.py --pixels` and `preview.mjs` use `flat5.html` too.
 - The older look is still one flag away: `--scene flat4.html`.
 
+## First-seconds retention rules (Vince approved Nov 17 2026; every daily video uses them)
+Why: Nov 9 TikTok 747 views, 7.0 s average watch of 42 s, 4.24% watched to the end; the Nov 2 video lost most viewers at 0:01. Traffic is 84% For You and 13% Search (queries like "stock crashing today", "market recap", "nasdaq"); Instagram is 97% non-follower views. So the first 3 seconds and the wording matter most. `flat5.html` does all of this by default (script fields below); `script.retention:false` turns it off.
+1. **Frame 1 is the answer.** The day's biggest move is on screen from the first frame as a huge number (about 60% of the width) with the camera already flying in. No logo, no title build. `hook.text` (3 to 5 words, `*word` is coloured, e.g. `"Tech just hit the *brakes"`) is shown large from frame 1, inside the safe area (y 125 to 835).
+2. **Colour pop behind the hook.** A red (or green) wash sits behind the number at full strength on frame 1, settles to a tint by about 3 s, and pulses softly on the camera beat.
+3. **A visual change every ~1.5 to 2 s, camera never still.** The camera takes a quick push-in beat every 1.75 s on top of the per-scene move and a slightly stronger drift; chips, cards, bars and chart lines enter on spoken words. Keep every scene under about 12 s (the news scene is the exception, one card per spoken sentence) and scene 1 under about 6 s.
+4. **Captions on by default, key words highlighted.** Key words are numbers, percent, the chip anchor words (`callouts[].at`), tickers in `script.ticker`, and anything listed in `script.keywords` (e.g. `["brakes","ai","chips"]`). `--no-captions` renders the plain cut.
+5. **Search-style wording**, on screen and in the post: pills read `STOCK MARKET TODAY` (`script.searchTag`) and `<LABEL> TODAY` (e.g. `NASDAQ TODAY`); the post caption opens with "US stock market today, <date>: ...", then "Nasdaq today" / "S&P 500 today" when they moved, the named stocks and the hashtags (#stockmarkettoday #nasdaqtoday #marketrecap ...). **"Crash" is used only when it is true**: an index down 3% or more in the day (S&P 500 or Dow) or Nasdaq down 4% or more. Otherwise say selloff, drop, slide (and still apply the wording-variety rule).
+6. **Ask for the follow near the end, and loop.** The end card button reads `FOLLOW FOR TOMORROW'S CLOSE` (`script.followText` to change) and the spoken sign-off stays "Stay with us for the next market close". The last ~0.9 s crossfades back to the hook number on the colour wash, so the final frame matches frame 1 and the autoplay loop feels continuous (`script.loop:false` to switch off).
+7. `qa.py` has a `retention` check (WARN): hook.text present and short, speech starts inside the first second, scene 1 and other scenes not too long, caption opens with a search phrase, "crash" only when true.
+
+What to measure next (log every batch in memory, tiktok-analytics.md): average watch time (baseline 7.0 s), % watched to the end (baseline 4.24%), 2-second and 6-second hold if shown, views from Search and For You, profile views and new followers per video, Instagram non-follower share. Compare 3 to 5 videos in the new look against the Nov 9 to Nov 16 baseline before changing anything else; change one thing at a time (hook text, colour wash, captions).
+
 ## Backdrop clips (optional look)
 `flatveo.html` plays frames from `template/_vbg/` behind the title, chips and captions. Make them from any 9:16 clip:
 ```

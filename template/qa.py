@@ -215,6 +215,7 @@ def check(day, pixels=False, video=None, mdata=None):
         say("WARN", "data-check.md still has REVIEW or single-source rows; list them in the delivery message")
     if S["scenes"][-1]["visual"].get("type") != "end":
         say("WARN", "last scene is not the V-logo end card")
+    retention_check(S, T, cap)
     if video:
         vp = video if os.path.isabs(video) or os.path.exists(video) else f(video)
         if os.path.exists(vp):
@@ -326,6 +327,34 @@ def market_check(S, repo, day):
         it = items[k]
         if it["status"] in ("SINGLE-SOURCE", "FIX"):
             say("WARN", f"market-data {k} is {it['status']}: " + "; ".join(it.get("notes", [])[:1]))
+
+
+def retention_check(S, T, cap):
+    """First-seconds retention rules (Nov 17 2026): see ENGINE.md. All WARN so older days still pass."""
+    h = S.get("hook") or {}
+    if not h:
+        say("WARN", "retention: script.hook is missing (big headline number on frame 1)")
+    elif not (h.get("text") or h.get("sub")):
+        say("WARN", "retention: hook.text missing (short on-screen hook line, about 3-5 words, shown from frame 1)")
+    elif len(re.sub(r"[*]", "", h.get("text") or h.get("sub")).split()) > 6:
+        say("WARN", "retention: hook.text is longer than 6 words; keep it to 3-5 so it stays large")
+    first = T["scenes"][0]
+    if first["t0"] > 0.7:
+        say("WARN", f"retention: first word is spoken at {first['t0']:.1f}s; build timing with lead 0.2 so speech starts inside the first second")
+    if first["t1"] - first["t0"] > 6.5:
+        say("WARN", "retention: scene 1 is longer than 6.5 s; cut to the next picture sooner")
+    long_ = [sc["id"] for s_, sc in zip(T["scenes"], S["scenes"]) if s_["t1"] - s_["t0"] > 12 and sc["visual"].get("type") not in ("news",)]
+    if long_:
+        say("WARN", f"retention: scene(s) {', '.join(long_)} run over 12 s; split them so the picture changes every few seconds")
+    if S.get("captions") is False or S.get("retention") is False:
+        say("WARN", "retention: captions/retention mode switched off in script.json")
+    first_line = cap.strip().split("\n")[0] if cap.strip() else ""
+    if not re.search(r"(stock market today|nasdaq today|s&p 500 today|dow today|stocks today)", first_line):
+        say("WARN", "retention: first caption line should open with a search phrase (e.g. 'US stock market today, <date>: ...')")
+    drops = [c.get("delta") for sc in S["scenes"] for c in sc.get("callouts", []) if c.get("delta") is not None and "index" in str(sc.get("tag", "")).lower()]
+    crash_words = re.search(r"\bcrash(es|ed|ing)?\b", cap + " " + str(h.get("text", "")) + " " + str(S.get("searchTag", "")), re.I)
+    if crash_words and not any(d <= -3 for d in drops):
+        say("WARN", "retention: 'crash' is used but no index fell 3% or more; use 'selloff' or 'drop' (crash only when true)")
 
 
 def pixel_check(day, T):
