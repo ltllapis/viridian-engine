@@ -101,7 +101,7 @@ function rng(seed){let a=seed>>>0;return()=>{a|=0;a=a+0x6D2B79F5|0;let t=Math.im
 const noise=(t,s)=>Math.sin(t*1.7+s)*.5+Math.sin(t*2.9+s*2.3)*.3+Math.sin(t*4.7+s*5.1)*.2;
 const esc=x=>String(x).replace(/&/g,'&amp;').replace(/</g,'&lt;');
 let S,T,DUR=30,SC=[];
-function wordTime(sc,key){if(!key)return sc.t0+.3;const w=sc.words.find(w=>w.w.replace(/[^\w&]/g,'').toLowerCase().startsWith(String(key).toLowerCase()));return w?w.t0:sc.t0+.3}
+function wordTime(sc,key){if(!key)return sc.t0+.3;const w=sc.words.find(w=>w.w.replace(/[^\w&]/g,'').toLowerCase().startsWith(String(key).replace(/[^\w&]/g,'').toLowerCase()));return w?w.t0:sc.t0+.3}
 
 // ---------- renderer ----------
 const canvas=$('gl');
@@ -289,7 +289,7 @@ B.news=(v,sc,s,X,g)=>{const items=v.items.slice(0,3),cols=[P.mint2,P.sky2,P.lav2
       gx.textAlign='left';gx.fillStyle=P.ink;let fs=35;gx.font=`800 ${fs}px Montserrat`;const mw=Math.max(...it.lines.slice(0,2).map(l=>gx.measureText(l).width));if(mw>500){fs=Math.floor(35*500/mw);gx.font=`800 ${fs}px Montserrat`}
       const two=it.lines.length>1;gx.fillText(it.lines[0],128,two?62:80);if(two)gx.fillText(it.lines[1],128,104);
       gx.fillStyle=P.ink3;gx.font='800 16px Montserrat';gx.letterSpacing='2.5px';gx.fillText(it.src||'',129,two?146:124)});
-  const tAt=items.map(it=>wordTime(sc,it.at));
+  const tAt=[];items.forEach((it,i)=>{tAt.push(Math.max(wordTime(sc,it.at),i?tAt[i-1]+.35:0))}); /* numbered cards always appear in order, never before the words that introduce them */
   const cards=items.map((it,i)=>{const t0=tex(draw(it,i,false)),t1=tex(draw(it,i,true));const m=new THREE.Mesh(new THREE.PlaneGeometry(3.5,3.5*196/660),new THREE.MeshBasicMaterial({map:t0,transparent:true,side:THREE.DoubleSide,depthWrite:false}));m.renderOrder=20+i;g.add(m);return {m,t0,t1}});
   const y0=2.44+(items.length-1)*.58;
   return {cam:{a:[[X-.6,2.7,12.1],[X,f.ly,0]],b:[[X+.6,2.7,11.6],[X,f.ly,0]]},title:s.headline||v.title||'Top news today',
