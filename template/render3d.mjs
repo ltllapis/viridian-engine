@@ -1,4 +1,4 @@
-// Render a daily recap: node render.mjs <day-dir> [--stills 1,12,30] [--draft]
+// Render a daily recap: node render.mjs <day-dir> [--stills 1,12,30] [--no-captions] (3D pages: captions are ON by default since Nov 17 2026)
 // Needs <day-dir>/script.json, timing.json, voice.wav, music.wav (from voice.py).
 import { createRequire } from "node:module";
 const { chromium } = createRequire(import.meta.url)("playwright");
@@ -22,7 +22,7 @@ const page = await browser.newPage({ viewport: { width: 540, height: 960 }, devi
 page.on("pageerror", e => console.error("PAGE ERROR", e.message));
 await page.goto(`http://127.0.0.1:${port}/${arg("--scene") || "flat5.html"}?pr=${arg("--pr") || 1.5}`);
 await page.waitForFunction("typeof window.init==='function'", null, { timeout: 120000 });
-await page.evaluate(async ([s, t, c]) => { await document.fonts.ready; await window.init(s, t, { captions: c }); }, [script, timing, process.argv.includes("--captions")]);
+await page.evaluate(async ([s, t, c]) => { await document.fonts.ready; await window.init(s, t, { captions: c }); }, [script, timing, !process.argv.includes("--no-captions")]);
 
 // preload-wait: let SVG <image> assets decode
 await page.evaluate(() => window.render(1));
