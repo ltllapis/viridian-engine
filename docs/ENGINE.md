@@ -40,6 +40,7 @@ Vince picked the look of the 30-second ad for every daily video. `flat5.html` is
 - Each scene is a set in one three.js world, 14 units apart. The camera arrives on the scene start and drifts until the next one; fast moves get motion blur.
 - Scene types drawn in 3D: `ichart`, `schart`, `duochart`, `sectors` (up to 11 rows, negatives go left), `news` (up to 3 cards), `end`.
 - Any other type (`bounce`, `selloff`, `exit`, `wrap`, a new name) is an opener: on the first scene it shows the `script.hook` number over the real chart that matches it (a chart series or duochart card whose tag or title matches `hook.label`, scaled to end at `hook.delta`). No bespoke art is needed for a new story.
+- `ichart` lanes (Nov 17 2026, Vince: the Dow, S&P and Nasdaq lines overlapped): with 2+ series each index gets its own stacked lane (spoken order, same percent scale, name tag at its end), so similar moves never sit on top of each other. `visual.lanes:false` restores the old single overlaid chart.
 - Optional fields: `hook.sub` (a short line under the hook number), `scene.headline` (big title for a scene; otherwise the visual title or the tag).
 - Render: `node template/render.mjs <day> --captions` (it hands 3D pages to `render3d.mjs`, which uses software WebGL). `qa.py --pixels` and `preview.mjs` use `flat5.html` too.
 - The older look is still one flag away: `--scene flat4.html`.

@@ -174,7 +174,7 @@ const TL=[[0,'9:30'],[.5,'NOON'],[1,'4:00']];
 function chart(g,cfg){
   const {x0=-1.95,x1=1.8,yBot,yTop,series}=cfg,N=cfg.N||Math.max(...series.map(s=>(s.i0||0)+s.pts.length));
   const vals=series.map(s=>s.pts.map(p=>(p/s.base-1)*100*(s.k||1))),all=vals.flat();
-  let lo=Math.min(0,...all),hi=Math.max(0,...all);const m=(hi-lo)*.06||.5;if(lo<0)lo-=m;if(hi>0)hi+=m;
+  let lo=Math.min(0,...all),hi=Math.max(0,...all);const m=(hi-lo)*.06||.5;if(lo<0)lo-=m;if(hi>0)hi+=m;if(cfg.lo!=null){lo=cfg.lo;hi=cfg.hi}
   const Xf=i=>lerp(x0,x1,N>1?i/(N-1):0),Y=v=>yBot+(v-lo)/(hi-lo)*(yTop-yBot),zy=Y(0),n=series.length;
   // biggest move at the back so every line stays visible over the solid fills
   const order=series.map((s,j)=>j).sort((a,b)=>Math.abs(vals[b].at(-1))-Math.abs(vals[a].at(-1))),zOf=j=>n>1?lerp(-.5,.5,order.indexOf(j)/(n-1)):0;
@@ -242,7 +242,16 @@ function pickSeries(h){const cands=[];S.scenes.forEach((s,i)=>{const v=s.visual|
   const match=x=>x.key&&x.key.toUpperCase().split(/[^A-Z0-9&]+/).filter(w=>w.length>2).some(w=>lab.includes(w));
   return cands.find(x=>sign(x)&&match(x))||cands.find(sign)||null}
 
-B.ichart=(v,sc,s,X,g)=>{const f=fit(3.0,.02,296,626),tags=[];
+B.ichart=(v,sc,s,X,g)=>{
+  /* Lanes (Nov 17 2026, Vince: index lines overlapped): when 2+ lines are shown each gets its own stacked lane with the same percent scale, in spoken order, so similar index moves never sit on top of each other. v.lanes:false keeps the old single overlaid chart. */
+  if(v.lanes!==false&&v.series.length>1){
+    const ser=v.series.map(x=>({...x,t0:wordTime(sc,x.at)-.1,dur:x.dur||1.6})).sort((a,b)=>a.t0-b.t0),n=ser.length,LH=.95,LG=.22,tags=[];
+    const all=ser.flatMap(x=>x.pts.map(p=>(p/x.base-1)*100));let lo=Math.min(0,...all),hi=Math.max(0,...all);const m=(hi-lo)*.06||.5;if(lo<0)lo-=m;if(hi>0)hi+=m;
+    const f=fit(n*LH+(n-1)*LG,0,296,626);
+    const chs=ser.map((x,i)=>{const yTop=(n-i)*LH+(n-1-i)*LG,ch=chart(g,{yBot:yTop-LH,yTop,series:[x],lo,hi,grid:false,zlabel:i===0?"YESTERDAY'S CLOSE":null,timeLabels:null});
+      ch.rbs.forEach(rb=>{if(rb.s.tag){const e=dom('tag',esc(rb.s.tag));e.style.background=rb.color;tags.push({e,rb})}});return ch});
+    return {cam:camFront(X,f),title:s.headline||v.title||'Today, minute by minute',upd:t=>{chs.forEach(c=>c.upd(t));placeTags(tags,X,t,sc)},off:()=>tags.forEach(q=>show(q.e,0))}}
+  const f=fit(3.0,.02,296,626),tags=[];
   const ser=v.series.map(x=>({...x,t0:wordTime(sc,x.at)-.1,dur:x.dur||1.6}));
   const ch=chart(g,{yBot:.5,yTop:3.0,series:ser,zlabel:"YESTERDAY'S CLOSE",timeLabels:TL});
   ch.rbs.forEach(rb=>{if(rb.s.tag){const e=dom('tag',esc(rb.s.tag));e.style.background=rb.color;tags.push({e,rb})}});
