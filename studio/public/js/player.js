@@ -10,17 +10,16 @@ const say = m => ($("msg").textContent = m || "");
 export async function load(keepT) {
   say("");
   try {
-    S.info = await Studio.api(Studio.dayApi());
+    S.info = await Studio.backend.info(S.day);
     Studio.version = S.info.version; $("ver").textContent = "v" + S.info.version;
     S.scene = S.scene && S.info.scenes.includes(S.scene) ? S.scene : S.info.defaultScene;
     $("sceneSel").innerHTML = S.info.scenes.map(s => `<option>${s}</option>`).join(""); $("sceneSel").value = S.scene;
-    const get = f => fetch(Studio.dayFile(f), { cache: "no-store" }).then(r => { if (!r.ok) throw new Error(f + " not found"); return r.json(); });
-    [S.script, S.timing] = await Promise.all([get("script.json"), get("timing.json")]);
+    [S.script, S.timing] = await Promise.all([Studio.backend.readJson(S.day, "script.json"), Studio.backend.readJson(S.day, "timing.json")]);
   } catch (e) { S.ready = false; say("Waiting for script.json and timing.json (" + e.message + ")"); return; }
   rebuildDraft();
   const fl = S.info.files;
   S.hasAudio = !!fl["voice.wav"];
-  const src = (el, f, vol) => { if (fl[f]) { const u = Studio.dayFile(f) + "?v=" + fl[f]; if (!el.src.endsWith(u)) el.src = u; el.volume = vol; } else el.removeAttribute("src"); };
+  const src = (el, f, vol) => { if (fl[f]) { const u = Studio.backend.fileUrl(S.day, f) + "?v=" + fl[f]; if (!el.src.endsWith(u)) el.src = u; el.volume = vol; } else el.removeAttribute("src"); };
   src(A, "voice.wav", 1); src(Mu, "music.wav", 0.22); src(Sx, "sfx.wav", 0.9);
   Studio.emit("loaded");
   await reinit(keepT);
@@ -47,7 +46,7 @@ export function reinit(keepT) {   // no keepT: stay where the playhead is when t
       } catch (e) { say("Scene error: " + e.message); }
       done();
     };
-    B.src = "/t/" + S.scene + "?r=" + Date.now();
+    B.src = Studio.backend.sceneUrl(S.scene) + "?r=" + Date.now();
     layout();
   });
 }

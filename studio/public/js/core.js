@@ -33,13 +33,7 @@ export const Studio = {
   emit(ev, d) { (handlers[ev] || []).forEach(fn => { try { fn(d); } catch (e) { console.error("[studio]", ev, e); } }); },
   /** Add a tab. {id, title, render() -> html, bind(root)?, badge()? -> string|number|null, onShow()?} */
   panel(p) { this.panels.push(p); },
-  async api(p) { const r = await fetch(p, { cache: "no-store" }); const j = await r.json(); if (!r.ok) throw new Error(j.error || r.statusText); return j; },
-  async post(p, body) {
-    const r = await fetch(p, { method: "POST", headers: { "content-type": "application/json", "x-studio": "1" }, body: JSON.stringify(body || {}) });
-    const j = await r.json().catch(() => ({})); if (!r.ok) throw new Error(j.error || r.statusText); return j;
-  },
-  dayApi: (rest = "") => "/api/day/" + encodeURIComponent(S.day) + (rest ? "/" + rest : ""),
-  dayFile: f => "/day/" + encodeURIComponent(S.day) + "/" + f,
+  backend: null,   // where files and saves live (backend-server.js or backend-web.js); chosen at start-up
   toast(text, isErr) { const t = $("toast"); t.textContent = text; t.className = "on" + (isErr ? " err" : ""); clearTimeout(this._tt); this._tt = setTimeout(() => (t.className = ""), isErr ? 5000 : 2200); },
   log(text) { S.activity.unshift({ at: new Date().toISOString(), text }); S.activity = S.activity.slice(0, 80); this.emit("activity"); },
 };
@@ -98,14 +92,14 @@ Studio.save = async () => {
   const ops = [...S.pending.values()].map(e => ({ op: "set", path: e.path, value: e.value }));
   const label = ops.length === 1 ? pathLabel(ops[0].path) : ops.length + " changes";
   try {
-    const r = await Studio.post(Studio.dayApi("script"), { ops, label });
+    const r = await Studio.backend.editScript(S.day, ops, label);
     S.script = clone(S.draft); S.pending.clear(); S.info.history = { undo: r.undo, redo: r.redo };
     Studio.log("Saved: " + label); Studio.toast("Saved"); Studio.emit("draft", { noRender: true }); Studio.emit("saved");
   } catch (e) { Studio.toast("Could not save: " + e.message, true); }
 };
 async function stepHistory(which) {
   if (S.pending.size) return Studio.toast("Save or discard your unsaved changes first", true);
-  try { const r = await Studio.post(Studio.dayApi(which)); S.info.history = { undo: r.undo, redo: r.redo }; Studio.log((which === "undo" ? "Undid: " : "Redid: ") + r.label); Studio.toast(which === "undo" ? "Undone" : "Redone"); Studio.emit("saved", { reload: true }); }
+  try { const r = await Studio.backend[which](S.day); S.info.history = { undo: r.undo, redo: r.redo }; Studio.log((which === "undo" ? "Undid: " : "Redid: ") + r.label); Studio.toast(which === "undo" ? "Undone" : "Redone"); Studio.emit("saved", { reload: true }); }
   catch (e) { Studio.toast(e.message, true); }
 }
 Studio.undo = () => stepHistory("undo");

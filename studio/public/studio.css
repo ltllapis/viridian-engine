@@ -109,4 +109,4 @@ dialog .row{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
 dialog a{color:var(--acc)}
 #toast{position:fixed;left:50%;bottom:150px;transform:translateX(-50%);background:#101319;border:1px solid var(--line);border-radius:10px;padding:8px 14px;font-size:13px;opacity:0;pointer-events:none;transition:opacity .2s;z-index:9}
 #toast.on{opacity:1}#toast.err{border-color:var(--coral);color:#ffd9d2}
-@media (max-width:900px){#main{flex-direction:column}#side{width:auto;max-height:44vh}body{overflow:auto;grid-template-rows:none}#stage{min-height:60vh}}
+@media (max-width:900px){body{display:flex;flex-direction:column;overflow:auto;height:auto;min-height:100vh}#main{flex-direction:column;flex:none}#side{width:auto;max-height:none}#stage{min-height:0;height:62vh;flex:none}#dock{position:sticky;bottom:0;z-index:20;box-shadow:0 -8px 18px #0008}#bar .hint{display:none}#bar button{padding:9px 12px}}
