@@ -101,7 +101,7 @@ function rng(seed){let a=seed>>>0;return()=>{a|=0;a=a+0x6D2B79F5|0;let t=Math.im
 const noise=(t,s)=>Math.sin(t*1.7+s)*.5+Math.sin(t*2.9+s*2.3)*.3+Math.sin(t*4.7+s*5.1)*.2;
 const esc=x=>String(x).replace(/&/g,'&amp;').replace(/</g,'&lt;');
 let S,T,DUR=30,SC=[];
-function wordTime(sc,key){if(!key)return sc.t0+.3;const w=sc.words.find(w=>w.w.replace(/[^\w&]/g,'').toLowerCase().startsWith(String(key).toLowerCase()));return w?w.t0:sc.t0+.3}
+function wordTime(sc,key){if(!key)return sc.t0+.3;const w=sc.words.find(w=>w.w.replace(/[^\w&]/g,'').toLowerCase().startsWith(String(key).replace(/[^\w&]/g,'').toLowerCase()));return w?w.t0:sc.t0+.3}
 
 // ---------- renderer ----------
 const canvas=$('gl');
@@ -174,7 +174,7 @@ const TL=[[0,'9:30'],[.5,'NOON'],[1,'4:00']];
 function chart(g,cfg){
   const {x0=-1.95,x1=1.8,yBot,yTop,series}=cfg,N=cfg.N||Math.max(...series.map(s=>(s.i0||0)+s.pts.length));
   const vals=series.map(s=>s.pts.map(p=>(p/s.base-1)*100*(s.k||1))),all=vals.flat();
-  let lo=Math.min(0,...all),hi=Math.max(0,...all);const m=(hi-lo)*.06||.5;if(lo<0)lo-=m;if(hi>0)hi+=m;
+  let lo=Math.min(0,...all),hi=Math.max(0,...all);const m=(hi-lo)*.06||.5;if(lo<0)lo-=m;if(hi>0)hi+=m;if(cfg.lo!=null){lo=cfg.lo;hi=cfg.hi}
   const Xf=i=>lerp(x0,x1,N>1?i/(N-1):0),Y=v=>yBot+(v-lo)/(hi-lo)*(yTop-yBot),zy=Y(0),n=series.length;
   // biggest move at the back so every line stays visible over the solid fills
   const order=series.map((s,j)=>j).sort((a,b)=>Math.abs(vals[b].at(-1))-Math.abs(vals[a].at(-1))),zOf=j=>n>1?lerp(-.5,.5,order.indexOf(j)/(n-1)):0;
@@ -242,7 +242,16 @@ function pickSeries(h){const cands=[];S.scenes.forEach((s,i)=>{const v=s.visual|
   const match=x=>x.key&&x.key.toUpperCase().split(/[^A-Z0-9&]+/).filter(w=>w.length>2).some(w=>lab.includes(w));
   return cands.find(x=>sign(x)&&match(x))||cands.find(sign)||null}
 
-B.ichart=(v,sc,s,X,g)=>{const f=fit(3.0,.02,296,626),tags=[];
+B.ichart=(v,sc,s,X,g)=>{
+  /* Lanes (Nov 17 2026, Vince: index lines overlapped): when 2+ lines are shown each gets its own stacked lane with the same percent scale, in spoken order, so similar index moves never sit on top of each other. v.lanes:false keeps the old single overlaid chart. */
+  if(v.lanes!==false&&v.series.length>1){
+    const ser=v.series.map(x=>({...x,t0:wordTime(sc,x.at)-.1,dur:x.dur||1.6})).sort((a,b)=>a.t0-b.t0),n=ser.length,LH=.95,LG=.22,tags=[];
+    const all=ser.flatMap(x=>x.pts.map(p=>(p/x.base-1)*100));let lo=Math.min(0,...all),hi=Math.max(0,...all);const m=(hi-lo)*.06||.5;if(lo<0)lo-=m;if(hi>0)hi+=m;
+    const f=fit(n*LH+(n-1)*LG,0,296,626);
+    const chs=ser.map((x,i)=>{const yTop=(n-i)*LH+(n-1-i)*LG,ch=chart(g,{yBot:yTop-LH,yTop,series:[x],lo,hi,grid:false,zlabel:i===0?"YESTERDAY'S CLOSE":null,timeLabels:null});
+      ch.rbs.forEach(rb=>{if(rb.s.tag){const e=dom('tag',esc(rb.s.tag));e.style.background=rb.color;tags.push({e,rb})}});return ch});
+    return {cam:camFront(X,f),title:s.headline||v.title||'Today, minute by minute',upd:t=>{chs.forEach(c=>c.upd(t));placeTags(tags,X,t,sc)},off:()=>tags.forEach(q=>show(q.e,0))}}
+  const f=fit(3.0,.02,296,626),tags=[];
   const ser=v.series.map(x=>({...x,t0:wordTime(sc,x.at)-.1,dur:x.dur||1.6}));
   const ch=chart(g,{yBot:.5,yTop:3.0,series:ser,zlabel:"YESTERDAY'S CLOSE",timeLabels:TL});
   ch.rbs.forEach(rb=>{if(rb.s.tag){const e=dom('tag',esc(rb.s.tag));e.style.background=rb.color;tags.push({e,rb})}});
@@ -280,7 +289,7 @@ B.news=(v,sc,s,X,g)=>{const items=v.items.slice(0,3),cols=[P.mint2,P.sky2,P.lav2
       gx.textAlign='left';gx.fillStyle=P.ink;let fs=35;gx.font=`800 ${fs}px Montserrat`;const mw=Math.max(...it.lines.slice(0,2).map(l=>gx.measureText(l).width));if(mw>500){fs=Math.floor(35*500/mw);gx.font=`800 ${fs}px Montserrat`}
       const two=it.lines.length>1;gx.fillText(it.lines[0],128,two?62:80);if(two)gx.fillText(it.lines[1],128,104);
       gx.fillStyle=P.ink3;gx.font='800 16px Montserrat';gx.letterSpacing='2.5px';gx.fillText(it.src||'',129,two?146:124)});
-  const tAt=items.map(it=>wordTime(sc,it.at));
+  const tAt=[];items.forEach((it,i)=>{tAt.push(Math.max(wordTime(sc,it.at),i?tAt[i-1]+.35:0))}); /* numbered cards always appear in order, never before the words that introduce them */
   const cards=items.map((it,i)=>{const t0=tex(draw(it,i,false)),t1=tex(draw(it,i,true));const m=new THREE.Mesh(new THREE.PlaneGeometry(3.5,3.5*196/660),new THREE.MeshBasicMaterial({map:t0,transparent:true,side:THREE.DoubleSide,depthWrite:false}));m.renderOrder=20+i;g.add(m);return {m,t0,t1}});
   const y0=2.44+(items.length-1)*.58;
   return {cam:{a:[[X-.6,2.7,12.1],[X,f.ly,0]],b:[[X+.6,2.7,11.6],[X,f.ly,0]]},title:s.headline||v.title||'Top news today',

@@ -15,6 +15,7 @@ Checks (FAIL stops the run, WARN is for a human to look at):
   narration narration.txt equals the spoken words in timing.json
   market    (with --market-data) every chip percent/close equals the checked entry for that date; BLOCK entries FAIL, SINGLE-SOURCE entries WARN
   news      (from 2026-11-09) a `news` scene with 1-3 headlines; days/<day>/news.json lists each with at least TWO different sources (name + url); every item's `at` word is spoken; headline lines fit the card; no digit in a headline the voice does not say
+  variety   (Vince, Nov 11) no dramatic keyword (roar, surge, plunge, bounce, ...) that the last 2 recaps used (WARN if within 5), and no 5-word phrase (numbers and 'S and P' ignored) repeated from the last 3 recaps; the fixed sign-off is exempt
   rules     disclaimer present, numbers spoken per video, video length, safe zone pixels, loudness
 """
 import json, os, re, subprocess, sys, wave
@@ -189,6 +190,7 @@ def check(day, pixels=False, video=None, mdata=None):
             say("WARN", f"{sc['id']}: zpulseAt '{vis['zpulseAt']}' not spoken")
 
     news_check(day, S, T, ts)
+    variety_check(day)
 
     # narration vs timing
     nar = [norm(w) for w in re.findall(r"\S+", open(f("narration.txt")).read())]
@@ -239,6 +241,33 @@ LABELS = {"DOW JONES": "DOW", "DOW CLOSE": "DOW", "S&P 500": "SPX", "S&P CLOSE":
           "MICROSOFT": "MSFT", "AMAZON": "AMZN", "APPLE": "AAPL", "ALPHABET": "GOOGL", "META": "META", "NVIDIA": "NVDA", "TESLA": "TSLA", "ORACLE": "ORCL", "AMD": "AMD"}
 
 
+SIGNOFF = "stay with us for the next market close"
+# Dramatic "color" words; matched by stem. Plain verbs (rose, fell, gained, lost) are fine to repeat.
+COLOR = ["roar", "surg", "soar", "plung", "tumbl", "sank", "sink", "jump", "slid", "slide", "bounc", "rebound", "rattl", "crash", "rall", "climb", "slip", "drop", "tank", "spik", "rout", "shak", "stumbl", "skid", "leap", "tore", "rock", "jolt", "slump", "melt"]
+def _words(text):
+    t = re.sub(r"[^a-z' ]+", " ", text.lower().replace("&", " and ")).replace(SIGNOFF, " ")
+    return t.split()
+def variety_check(day):
+    base = os.path.basename(os.path.normpath(day)); parent = os.path.dirname(os.path.abspath(day))
+    cur_file = os.path.join(day, "narration.txt")
+    if not os.path.exists(cur_file): return
+    prev = sorted(d for d in os.listdir(parent) if re.fullmatch(r"\d{4}-\d\d-\d\d", d) and d < base[:10] and os.path.exists(os.path.join(parent, d, "narration.txt")))[-5:]
+    if not prev: return
+    cur = _words(open(cur_file).read())
+    old = {d: _words(open(os.path.join(parent, d, "narration.txt")).read()) for d in prev}
+    for st in COLOR:
+        if not any(w.startswith(st) for w in cur): continue
+        hits = [d for d in prev if any(w.startswith(st) for w in old[d])]
+        if not hits: continue
+        near = [d for d in hits if d in prev[-2:]]
+        word = next(w for w in cur if w.startswith(st))
+        say("FAIL" if near else "WARN", f"variety: '{word}' was also used in {', '.join(hits)}; use a different word (FAIL if in the last 2 recaps, WARN within 5)")
+    drop = set(NUMW) | set(TENS) | {"hundred", "thousand", "million", "billion", "point", "percent", "s", "and", "p"}
+    grams = lambda ws: (lambda w: {" ".join(w[i:i + 5]) for i in range(len(w) - 4)})([x for x in ws if x not in drop])
+    for d in prev[-3:]:
+        rep = sorted(grams(cur) & grams(old[d]))
+        if rep: say("WARN", f"variety: phrase '{rep[0]}'{' (+%d more)' % (len(rep) - 1) if len(rep) > 1 else ''} repeats {d}; reword it")
+
 def news_check(day, S, T, ts):
     """Top-news scene: present, confirmed by two sources, anchored and short enough to read."""
     date = re.sub(r"[^0-9-]", "", os.path.basename(os.path.abspath(day))[:10])
@@ -253,10 +282,16 @@ def news_check(day, S, T, ts):
         say("FAIL", f"{sc['id']}: news scene has {len(items)} headlines (want 1 to 3)")
     t = ts.get(sc["id"]); wn = [norm(w["w"]) for w in t["words"]] if t else []
     spoken_digits = set(re.findall(r"\d+", " ".join(w["w"] for w in t["words"]))) if t else set()
+    prev_t = -1
     for i, it in enumerate(items, 1):
         k = it.get("at")
         if not k or not any(w.startswith(norm(k)) for w in wn):
             say("FAIL", f"{sc['id']}: headline {i} anchor word '{k}' is not spoken in the news scene")
+        else:
+            tt = next(w["t0"] for w in t["words"] if norm(w["w"]).startswith(norm(k)))
+            if i > 1 and tt <= prev_t:
+                say("FAIL", f"{sc['id']}: headline {i} is introduced before headline {i-1}; numbered cards must come in spoken order")
+            prev_t = tt
         lines = it.get("lines") or []
         if not 1 <= len(lines) <= 2 or any(len(l) > 28 for l in lines):
             say("FAIL", f"{sc['id']}: headline {i} must be 1-2 lines of at most 28 characters (card width): {lines}")
